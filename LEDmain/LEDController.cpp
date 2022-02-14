@@ -75,7 +75,7 @@ void LEDController::CreateHTML(String& rHTMLString)
 	rHTMLString += ".button2 {background-color: #555555;}</style></head>\n";
 
 	// Web Page Heading
-	rHTMLString += "<body><h1>Loesch LED test</h1>\n";
+	rHTMLString += "<body><h1>LED Home</h1>\n";
 
 	rHTMLString += "<p>[<span id='datetime'></span>]</p>\n";
 	rHTMLString += "<p></p>\n";
@@ -152,6 +152,9 @@ void LEDController::SetNumLEDs(int iNumLEDs)
 	if (m_printFunc != nullptr)
 		m_printFunc("LEDController::SetNumLEDs");
 
+	// Set all black.
+	LEDBase::SetBlack(m_spData->pLeds, m_spData->iNumLEDs);
+	
 	m_spData->iNumLEDs = iNumLEDs;
 	if (m_spData->pLeds != nullptr)
 	{
@@ -159,6 +162,8 @@ void LEDController::SetNumLEDs(int iNumLEDs)
 	}
 	m_spData->pLeds = new CRGB[m_spData->iNumLEDs];
 	registerLEDs();
+	
+	m_spData->availableLEDFunctions[m_spData->uiLastActive]->SetActive(true);
 }
 
 void LEDController::SetBrightness(uint8_t iBrightness)

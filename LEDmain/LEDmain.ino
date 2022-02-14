@@ -17,7 +17,6 @@
     - add num leds function
     - save values (eprom)
     - LEDControlPositionBySlider
-    - LEDFireLEDBallByClick
     - PIMPL
 */
 
