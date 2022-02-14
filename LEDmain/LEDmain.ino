@@ -11,8 +11,6 @@
 #include "NTPTime.h"
 
 /** Todos
-    - set server adress to LEDBase for proper usage (HTML)
-    - base functions for html controls
     - add debug-action to control m_printFunc
     - add scheduler
     - add brightness function
@@ -36,31 +34,18 @@ void OnRootEvent()
 
 void OnEvent()
 {
-  // Extract arguments
-  std::vector<std::pair<String,String>> arguments(Server.args());
-  for (int i = 0; i < Server.args(); i++)
-  {
-    arguments[i] = std::make_pair(Server.argName(i), Server.arg(i));
-    Serial.println(Server.argName(i) + " -> " + Server.arg(i));
-  }
-
-  if (Server.uri() == "/global")
-  {
+    // Extract arguments
+    std::vector<std::pair<String,String>> arguments(Server.args());
     for (int i = 0; i < Server.args(); i++)
     {
-      if (Server.argName(i) == "numLED")
-      {
-        // todo.
-      }
+        arguments[i] = std::make_pair(Server.argName(i), Server.arg(i));
+        Serial.println(Server.argName(i) + " -> " + Server.arg(i));
     }
-  }
-  else
-  {
+
     Serial.println(Server.uri());
     String html;
     LEDController::GetInstance().OnEvent(Server.uri(), arguments, html);
     Server.send(200, "text/html", html);
-  }
 }
 
 void printCallback(const String& rString)
@@ -84,11 +69,12 @@ void setup() {
   }
 
   LEDController::GetInstance().RegisterPrintFunction(printCallback);
-  LEDController::GetInstance().Setup(27, 120, 200, 60);
+  LEDController::GetInstance().Setup(WiFi.localIP().toString(), 27, 120, 200, 60);
   std::vector<String> subPages = LEDController::GetInstance().GetSubPageLinks();
   
   // Websites
   Server.on("/", OnRootEvent);
+  Server.on("/global", OnEvent);
   for (int i = 0; i < subPages.size(); ++i)
   {
     Server.on(subPages[i], OnEvent);
@@ -102,5 +88,9 @@ void setup() {
 void loop() {
   Portal.handleClient();
 
+  // get current time
+  tm timeInfo = NTPTime::GetInstance().GetTime();
+  LEDController::GetInstance().SetTime((uint8_t)timeInfo.tm_hour, (uint8_t)timeInfo.tm_min);
+  
   LEDController::GetInstance().Loop();
 }

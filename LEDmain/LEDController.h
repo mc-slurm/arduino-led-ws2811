@@ -24,9 +24,11 @@ class LEDController : public Singleton<LEDController>
 		void SetNumLEDs(int iNumLEDs);
 		void SetBrightness(uint8_t iBrightness);
 		void SetUpdateRate(int iUpdateRate);
+		void SetURL(const String& rURL);
+		void SetTime(uint8_t uiHour, uint8_t uiMinute);
 		
 	public:
-		void Setup(uint8_t iLEDPin, int iNumLEDs, uint8_t iBrightness, int iUpdateRate);
+		void Setup(const String& rURL, uint8_t iLEDPin, int iNumLEDs, uint8_t iBrightness, int iUpdateRate);
 		void Loop();
 		void OnEvent(const String& rURL, std::vector<std::pair<String, String>>& rArguments, String& rHTMLString);
 		
@@ -34,6 +36,9 @@ class LEDController : public Singleton<LEDController>
 		
 	public:
 		void RegisterPrintFunction(std::function<void(const String&)> rFunc) { m_printFunc = rFunc; }
+		
+	protected:
+		void registerLEDs(void);
 		
 	// private:
 		struct SData;

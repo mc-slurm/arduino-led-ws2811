@@ -33,45 +33,10 @@ LEDFire::~LEDFire(void)
 
 void LEDFire::CreateHTML(String& rHTMLString)
 {
-  rHTMLString = "<!DOCTYPE html>\n";
-  rHTMLString += "<html>\n";
-  rHTMLString += "<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n";
-  rHTMLString += "<link rel=\"icon\" href=\"data:,\">\n";
-  // CSS to style the on/off buttons 
-  // Feel free to change the background-color and font-size attributes to fit your preferences
-  rHTMLString += "<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}\n";
-  rHTMLString += ".button { background-color: #4CAF50; border: none; color: white; padding: 16px 40px;\n";
-  rHTMLString += "text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}\n";
-  rHTMLString += ".button2 {background-color: #555555;}</style></head>\n";
-  
-  // Web Page Heading
-  rHTMLString += "<body><h1>Loesch LED Fire</h1>\n";
-
-  rHTMLString += "<p>[<span id='datetime'></span>]</p>\n";
-  
-  if (m_bActive)
-  {
-	rHTMLString += "<p>Current LED State: on</p>\n";
-    rHTMLString += "<p><a href=\"/fire?action=off\"><button class=\"button button2\">OFF</button></a></p>\n";
-  }
-  else
-  {
-	rHTMLString += "<p>Current LED State: off</p>\n";
-    rHTMLString += "<p><a href=\"/fire?action=on\"><button class=\"button\">ON</button></a></p>\n";
-  }
-
-  rHTMLString += "<script>\n";
-  rHTMLString += "var dt = new Date()\n";
-  rHTMLString += "document.getElementById(\"datetime\").innerHTML = ((\"0\"+dt.getDate()).slice(-2)) +\".\"+ ((\"0\"+(dt.getMonth()+1)).slice(-2)) +\".\"+ (dt.getFullYear()) +\" \"+ ((\"0\"+dt.getHours()).slice(-2)) +\":\"+ ((\"0\"+dt.getMinutes()).slice(-2))\n";
-  rHTMLString += "</script>\n";
-
-  rHTMLString += "<p></p>\n";
-  rHTMLString += "<p></p>\n";
-  rHTMLString += "<a href=\"/\">- HOME -</a>\n";
-  rHTMLString += "</body></html>\n";
-  
-  // The HTTP response ends with another blank line
-  rHTMLString += "\n";
+	CreateHTMLHeader(GetSubPage(), rHTMLString);
+	CreateHTMLOnOffButtons(GetSubPageLink(), m_bActive, rHTMLString);
+	CreateHTMLDateTimeFunction(rHTMLString);
+	CreateHTMLFooter(rHTMLString);
 }
 
 void LEDFire::UpdateLEDs(CRGB* leds, int iNumLEDs)
