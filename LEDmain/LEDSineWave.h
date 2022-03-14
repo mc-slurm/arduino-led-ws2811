@@ -24,23 +24,9 @@ class LEDSineWave : public LEDBase
 		
 	protected:
 		virtual void onEvent(std::vector<std::pair<String, String>>& rArguments) override;
+		std::unique_ptr<LEDConfigBase> createConfig(const String& rName);
 	
 	private:
-		float m_fk = 0.6f;
-		float m_fw = 0.7f;
-		float m_fo = 0.f;
-		float m_fD = 0.f;
-		
-		float m_fdT = 0.3f;
 		float m_fTime = 0.f;
-		
-	private:
-		uint8_t m_iRedHigh = 255;
-		uint8_t m_iBlueHigh = 0;
-		uint8_t m_iGreenHigh = 0;		
-
-		uint8_t m_iRedLow = 0;
-		uint8_t m_iBlueLow = 255;
-		uint8_t m_iGreenLow = 0;		
 };
 #endif

@@ -6,6 +6,7 @@
 #include "LEDSineWave.h"
 #include "LEDShot.h"
 #include "GlobalDefs.h"
+#include "StreamEEPROM.h"
 #include <sstream>
 #include <string>
 
@@ -139,7 +140,22 @@ void LEDController::CreateHTML(String& rHTMLString)
 	}
 	rHTMLString += "  </td>\n";
 	rHTMLString += "</tr>\n";
+	rHTMLString += "<tr>\n";
+	rHTMLString += "  <td>All configurations</td>\n";
+	rHTMLString += "  <td>\n";
+	rHTMLString += "    <button class=\"button3\" id=\"saveAll\" type=\"button\" onclick=\"configAction(this.id);\">Save</button>\n";
+	rHTMLString += "    <button class=\"button3\" id=\"loadAll\" type=\"button\" onclick=\"configAction(this.id);\">Load</button>\n";
+	rHTMLString += "  </td>\n";
+	rHTMLString += "</tr>\n";
 	rHTMLString += "</table>\n";
+
+	rHTMLString += "<script>\n";
+	rHTMLString += "	function configAction(curId) {\n";
+	rHTMLString += "        var destURL = 'http://" + m_spData->url + "?configAction=' + curId;\n";
+	rHTMLString += "		alert(destURL);\n";
+	rHTMLString += "		window.location.href = destURL\n";
+	rHTMLString += "	}\n";
+	rHTMLString += "</script>\n";
 
 	LEDBase::CreateHTMLDateTimeFunction(rHTMLString);
 	LEDBase::CreateHTMLUpdateValueFunction(m_spData->url, globalPage, rHTMLString);
@@ -152,8 +168,13 @@ void LEDController::SetNumLEDs(int iNumLEDs)
 	if (m_printFunc != nullptr)
 		m_printFunc("LEDController::SetNumLEDs");
 
-	// Set all black.
-	LEDBase::SetBlack(m_spData->pLeds, m_spData->iNumLEDs);
+	bool bChange = (iNumLEDs > 0 && m_spData->uiLastActive < iNumLEDs);
+	if (bChange)
+	{
+		// Set all black.
+		LEDBase::SetBlack(m_spData->pLeds, m_spData->iNumLEDs);
+		m_spData->availableLEDFunctions[m_spData->uiLastActive]->SetActive(false);
+	}
 	
 	m_spData->iNumLEDs = iNumLEDs;
 	if (m_spData->pLeds != nullptr)
@@ -163,7 +184,10 @@ void LEDController::SetNumLEDs(int iNumLEDs)
 	m_spData->pLeds = new CRGB[m_spData->iNumLEDs];
 	registerLEDs();
 	
-	m_spData->availableLEDFunctions[m_spData->uiLastActive]->SetActive(true);
+	if (bChange)
+	{
+		m_spData->availableLEDFunctions[m_spData->uiLastActive]->SetActive(true);
+	}
 }
 
 void LEDController::SetBrightness(uint8_t iBrightness)
@@ -363,6 +387,20 @@ void LEDController::OnEvent(const String& rURL, std::vector<std::pair<String, St
 				m_spData->bSchedulerEnabled = !m_spData->bSchedulerEnabled;
 				//m_spData->bSchedulerEnabled = (rArguments[i].second == "on" ? true : false);
 			}
+			else if (rArguments[i].first == "configAction")
+			{
+				m_printFunc("configAction");
+				if (rArguments[i].second == "saveAll")
+				{
+					m_printFunc("- saveAll");
+					SaveConfigs();
+				}
+				else if (rArguments[i].second == "loadAll")
+				{
+					m_printFunc("- loadAll");
+					LoadConfigs();
+				}
+			}
 			CreateHTML(rHTMLString);
 		}
 		return;
@@ -398,5 +436,50 @@ void LEDController::OnEvent(const String& rURL, std::vector<std::pair<String, St
 			break;
 		}
     }
-
 }
+
+void LEDController::SaveConfigs(void) const
+{
+	m_printFunc("LEDController::SaveConfigs");
+	try
+	{
+		StreamEEPROM stream;
+		for (int i = 0; i < m_spData->availableLEDFunctions.size(); ++i)
+		{
+			m_spData->availableLEDFunctions[i]->Serialize(stream);
+		}
+		
+		m_printFunc("Writing to EEPROM (size: " + String(stream.GetSize()) + ")");
+		if (stream.GetSize() > 255)
+		{
+			throw 0;
+		}
+		stream.WriteEEPROM(0); // write all from EEPROM.
+	}
+	catch(...)
+	{
+		
+	}
+}
+
+void LEDController::LoadConfigs(void)
+{
+	m_printFunc("LEDController::LoadConfigs");
+	try
+	{
+		StreamEEPROM stream;
+		stream.ReadEEPROM(0); // read all from EEPROM.
+		{
+			const StreamEEPROM& rStream = stream;
+			for (int i = 0; i < m_spData->availableLEDFunctions.size(); ++i)
+			{
+				m_spData->availableLEDFunctions[i]->Serialize(rStream);
+			}		
+		}
+	}
+	catch(...)
+	{
+		
+	}
+}
+

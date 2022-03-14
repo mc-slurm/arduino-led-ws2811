@@ -4,7 +4,6 @@
 #pragma once
 
 #include "LEDBase.h"
-#include "FastLED.h"
 
 class LEDShot : public LEDBase
 {
@@ -20,17 +19,11 @@ class LEDShot : public LEDBase
 		
 	protected:
 		virtual void onEvent(std::vector<std::pair<String, String>>& rArguments) override;
+		std::unique_ptr<LEDConfigBase> createConfig(const String& rName);
 	
 	private:
-		uint8_t m_uiSpeed = 1;
 		uint8_t m_uiCurTime = 0;
 		uint8_t m_uiTime = 100;
-		uint8_t m_uiSize = 3;
-		
-		uint8_t m_iRed = 180;
-		uint8_t m_iGreen = 180;		
-		uint8_t m_iBlue = 0;
-		
 		uint8_t m_uiShotPosition = UINT8_MAX;
 };
 #endif

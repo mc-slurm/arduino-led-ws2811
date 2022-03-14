@@ -19,6 +19,7 @@ class LEDFire : public LEDBase
 		
 	protected:
 		virtual void onEvent(std::vector<std::pair<String, String>>& rArguments) override;
+		std::unique_ptr<LEDConfigBase> createConfig(const String& rName);
 	
 	private:
 		uint8_t* heat = nullptr;

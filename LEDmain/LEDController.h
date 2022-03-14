@@ -35,12 +35,15 @@ class LEDController : public Singleton<LEDController>
 		std::vector<String> GetSubPageLinks(void) const;
 		
 	public:
+		void SaveConfigs(void) const;
+		void LoadConfigs(void);
+		
+	public:
 		void RegisterPrintFunction(std::function<void(const String&)> rFunc) { m_printFunc = rFunc; }
 		
 	protected:
 		void registerLEDs(void);
 		
-	// private:
 		struct SData;
 		std::unique_ptr<SData> m_spData;
 		std::function<void(const String&)> m_printFunc;

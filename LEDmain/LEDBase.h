@@ -5,7 +5,11 @@
 
 #include <Arduino.h>
 #include <functional>
+#include <memory>
+#include <vector>
+#include "LEDConfigBase.h"
 class CRGB;
+class StreamEEPROM;
 
 class LEDBase
 {
@@ -37,16 +41,42 @@ class LEDBase
 		static void CreateHTMLFooter(String& rHTMLString);
 
 		static void CreateHTMLUpdateValueFunction(const String& rURL, const String& rSubPage, String& rHTMLString);
+		static void CreateHTMLAddConfigFunction(const String& rURL, const String& rSubPage, String& rHTMLString);
 		static void CreateHTMLRGBToHexFunction(String& rHTMLString);
 		static void CreateHTMLDateTimeFunction(String& rHTMLString);
+		
+		static void CreateHTMLConfigTableRow(std::vector<std::unique_ptr<LEDConfigBase>>& rConfigs, const String& rSubPageLink, const String& rActiveConfigName, String& rHTMLString);
+
+	public:
+		void Serialize(StreamEEPROM& rStream) const;
+		void Serialize(const StreamEEPROM& rStream);	
 
 	protected:
-		virtual void onEvent(std::vector<std::pair<String, String>>& rArguments) {}
+		virtual void onEvent(std::vector<std::pair<String, String>>& rArguments);
+		virtual std::unique_ptr<LEDConfigBase> createConfig(const String& rName) = 0;
+		void assertAndSetCustomConfig(void);
+		bool isConfigNameReserved(const String& rName) const;
+		bool isConfigNameExists(const String& rName) const;
 		bool m_bActive = false;
 		int m_iUpdateFrequency = 100;
 		String m_URL = "";
 		
 		std::function<void(const String&)> m_printFunc;
+
+	protected:
+		template<typename T>
+		T& getConfig(uint32_t uiIndex) { return static_cast<T&>(*m_configurations[uiIndex]); }
+
+		template<typename T>
+		T& getActiveConfig(void) { return static_cast<T&>(*m_configurations[m_uiActiveConfig]); }
+		
+		std::vector<std::unique_ptr<LEDConfigBase>> m_configurations;
+		uint32_t m_uiActiveConfig = 0;
+		
+		static String getConfigActionString(void);
+		static String getConfigCreateString(void);
+		static String getConfigDeleteString(void);
+
 	
 	private:
 };

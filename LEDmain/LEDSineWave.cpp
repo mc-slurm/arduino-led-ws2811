@@ -1,11 +1,13 @@
 #include "LEDSineWave.h"
 #include <Arduino.h>
 #include "FastLED.h"
+#include "LEDConfigSineWave.h"
+#include "GlobalDefs.h"
 #include <sstream>
 
 LEDSineWave::LEDSineWave(void)
 {
-	
+	m_configurations.push_back(make_unique<LEDConfigSineWave>("default"));
 }
 
 LEDSineWave::~LEDSineWave(void)
@@ -27,23 +29,23 @@ void LEDSineWave::CreateHTML(String& rHTMLString)
 	rHTMLString += "</tr>\n";
 	rHTMLString += "<tr>\n";
 	rHTMLString += "  <td>num waves</td>\n";
-	rHTMLString += "<td><input type=\"range\" id=\"k\" min=\"0\" max=\"1\" step=\"0.01\" value=\"" + String(m_fk) + "\" oninput=\"updateVal(this.id, this.value)\" onchange=\"updateVal(this.id, this.value)\">\n";
-	rHTMLString += "    <label for=\"k\">" + String(m_fk) + "</label>\n";
+	rHTMLString += "<td><input type=\"range\" id=\"k\" min=\"0\" max=\"1\" step=\"0.01\" value=\"" + String(getActiveConfig<LEDConfigSineWave>().m_fk) + "\" oninput=\"updateVal(this.id, this.value)\" onchange=\"updateVal(this.id, this.value)\">\n";
+	rHTMLString += "    <label for=\"k\">" + String(getActiveConfig<LEDConfigSineWave>().m_fk) + "</label>\n";
 	rHTMLString += "</tr>\n";
 	rHTMLString += "<tr>\n";
 	rHTMLString += "  <td>wave speed</td>\n";
-	rHTMLString += "<td><input type=\"range\" id=\"w\" min=\"0\" max=\"5\" step=\"0.1\" value=\"" + String(m_fw) + "\" oninput=\"updateVal(this.id, this.value)\" onchange=\"updateVal(this.id, this.value)\">\n";
-	rHTMLString += "    <label for=\"w\">" + String(m_fw) + "</label>\n";
+	rHTMLString += "<td><input type=\"range\" id=\"w\" min=\"0\" max=\"5\" step=\"0.1\" value=\"" + String(getActiveConfig<LEDConfigSineWave>().m_fw) + "\" oninput=\"updateVal(this.id, this.value)\" onchange=\"updateVal(this.id, this.value)\">\n";
+	rHTMLString += "    <label for=\"w\">" + String(getActiveConfig<LEDConfigSineWave>().m_fw) + "</label>\n";
 	rHTMLString += "</tr>\n";
 	rHTMLString += "<tr>\n";
 	rHTMLString += "  <td>wave shift</td>\n";
-	rHTMLString += "<td><input type=\"range\" id=\"o\" min=\"0\" max=\"3\" step=\"0.1\" value=\"" + String(m_fo) + "\" oninput=\"updateVal(this.id, this.value)\" onchange=\"updateVal(this.id, this.value)\">\n";
-	rHTMLString += "    <label for=\"o\">" + String(m_fo) + "</label>\n";
+	rHTMLString += "<td><input type=\"range\" id=\"o\" min=\"0\" max=\"3\" step=\"0.1\" value=\"" + String(getActiveConfig<LEDConfigSineWave>().m_fo) + "\" oninput=\"updateVal(this.id, this.value)\" onchange=\"updateVal(this.id, this.value)\">\n";
+	rHTMLString += "    <label for=\"o\">" + String(getActiveConfig<LEDConfigSineWave>().m_fo) + "</label>\n";
 	rHTMLString += "</tr>\n";
 	rHTMLString += "<tr>\n";
 	rHTMLString += "  <td>time step</td>\n";
-	rHTMLString += "<td><input type=\"range\" id=\"dt\" min=\"0\" max=\"1\" step=\"0.001\" value=\"" + String(m_fdT) + "\" oninput=\"updateVal(this.id, this.value)\" onchange=\"updateVal(this.id, this.value)\">\n";
-	rHTMLString += "    <label for=\"dt\">" + String(m_fdT) + "</label>\n";
+	rHTMLString += "<td><input type=\"range\" id=\"dt\" min=\"0\" max=\"1\" step=\"0.001\" value=\"" + String(getActiveConfig<LEDConfigSineWave>().m_fdT) + "\" oninput=\"updateVal(this.id, this.value)\" onchange=\"updateVal(this.id, this.value)\">\n";
+	rHTMLString += "    <label for=\"dt\">" + String(getActiveConfig<LEDConfigSineWave>().m_fdT) + "</label>\n";
 	rHTMLString += "</tr>\n";
 	rHTMLString += "<tr>\n";
 	rHTMLString += "  <td>Color high</td>\n";
@@ -53,15 +55,17 @@ void LEDSineWave::CreateHTML(String& rHTMLString)
 	rHTMLString += "  <td>Color low</td>\n";
 	rHTMLString += "  <td><input type=\"color\" id=\"rgbColorLow\" name=\"rgbColorLow\" value=\"#ffffff\" onchange=\"updateVal(this.id, this.value);\"></td>\n";
 	rHTMLString += "</tr>\n";
+	CreateHTMLConfigTableRow(m_configurations, GetSubPageLink(), getActiveConfig<LEDConfigSineWave>().GetName(), rHTMLString);
 	rHTMLString += "</table>\n";
   
 	CreateHTMLRGBToHexFunction(rHTMLString);
 	CreateHTMLUpdateValueFunction(m_URL, GetSubPageLink(), rHTMLString);
 	CreateHTMLDateTimeFunction(rHTMLString);
+	CreateHTMLAddConfigFunction(m_URL, GetSubPageLink(), rHTMLString);
   
 	rHTMLString += "<script>\n";
-	rHTMLString += "  document.getElementById(\"rgbColorHigh\").value = rgbToHex(" + String(m_iRedHigh) + "," + String(m_iGreenHigh) + "," + String(m_iBlueHigh) + ");\n";
-	rHTMLString += "  document.getElementById(\"rgbColorLow\").value = rgbToHex(" + String(m_iRedLow) + "," + String(m_iGreenLow) + "," + String(m_iBlueLow) + ");\n";
+	rHTMLString += "  document.getElementById(\"rgbColorHigh\").value = rgbToHex(" + String(getActiveConfig<LEDConfigSineWave>().m_uiRedHigh) + "," + String(getActiveConfig<LEDConfigSineWave>().m_uiGreenHigh) + "," + String(getActiveConfig<LEDConfigSineWave>().m_uiBlueHigh) + ");\n";
+	rHTMLString += "  document.getElementById(\"rgbColorLow\").value = rgbToHex(" + String(getActiveConfig<LEDConfigSineWave>().m_uiRedLow) + "," + String(getActiveConfig<LEDConfigSineWave>().m_uiGreenLow) + "," + String(getActiveConfig<LEDConfigSineWave>().m_uiBlueLow) + ");\n";
 	rHTMLString += "</script>\n";
 
 	CreateHTMLFooter(rHTMLString);
@@ -79,16 +83,16 @@ void LEDSineWave::UpdateLEDs(CRGB* leds, int iNumLEDs)
 	for(int j = 0; j < iNumLEDs; j++)
 	{
 		// scale to [-0.5 .. 0.5] and shift by 0.5 to get [0 .. 1]
-		float fVal = sinf(m_fk * (float)j - m_fw * m_fTime + m_fo)/2.f + 0.5f;
+		float fVal = sinf(getActiveConfig<LEDConfigSineWave>().m_fk * (float)j - getActiveConfig<LEDConfigSineWave>().m_fw * m_fTime + getActiveConfig<LEDConfigSineWave>().m_fo)/2.f + 0.5f;
 
-		float fRed = fVal * (float)m_iRedHigh + (1.f - fVal) * (float)m_iRedLow;
-		float fGreen = fVal * (float)m_iGreenHigh + (1.f - fVal) * (float)m_iGreenLow;
-		float fBlue = fVal * (float)m_iBlueHigh + (1.f - fVal) * (float)m_iBlueLow;
+		float fRed = fVal * (float)getActiveConfig<LEDConfigSineWave>().m_uiRedHigh + (1.f - fVal) * (float)getActiveConfig<LEDConfigSineWave>().m_uiRedLow;
+		float fGreen = fVal * (float)getActiveConfig<LEDConfigSineWave>().m_uiGreenHigh + (1.f - fVal) * (float)getActiveConfig<LEDConfigSineWave>().m_uiGreenLow;
+		float fBlue = fVal * (float)getActiveConfig<LEDConfigSineWave>().m_uiBlueHigh + (1.f - fVal) * (float)getActiveConfig<LEDConfigSineWave>().m_uiBlueLow;
 
 		leds[j] =  CRGB((uint8_t)fRed, (uint8_t)fGreen, (uint8_t)fBlue);
 //		leds[j] =  CRGB(120, (uint8_t)((float)60 * fVal), 0);
 	}
-	m_fTime += m_fdT;
+	m_fTime += getActiveConfig<LEDConfigSineWave>().m_fdT;
 }
 
 String LEDSineWave::GetSubPage(void) const
@@ -101,8 +105,16 @@ String LEDSineWave::GetSubPageLink(void) const
 	return "/sinewave";
 }
 
+std::unique_ptr<LEDConfigBase> LEDSineWave::createConfig(const String& rName)
+{
+	auto ptr = make_unique<LEDConfigSineWave>(rName);
+	return ptr;
+}
+
 void LEDSineWave::onEvent(std::vector<std::pair<String, String>>& rArguments)
 {
+	LEDBase::onEvent(rArguments);
+
 	for (int i = 0; i < rArguments.size(); ++i)
 	{
 		if (rArguments[i].first == "action")
@@ -118,41 +130,46 @@ void LEDSineWave::onEvent(std::vector<std::pair<String, String>>& rArguments)
 		}
 		else if (rArguments[i].first == "k")
 		{
-			m_fk = rArguments[i].second.toFloat();
+			assertAndSetCustomConfig();
+			getActiveConfig<LEDConfigSineWave>().m_fk = rArguments[i].second.toFloat();
 		}
 		else if (rArguments[i].first == "w")
 		{
-			m_fw = rArguments[i].second.toFloat();
+			assertAndSetCustomConfig();
+			getActiveConfig<LEDConfigSineWave>().m_fw = rArguments[i].second.toFloat();
 		}
 		else if (rArguments[i].first == "o")
 		{
-			m_fo = rArguments[i].second.toFloat();
+			assertAndSetCustomConfig();
+			getActiveConfig<LEDConfigSineWave>().m_fo = rArguments[i].second.toFloat();
 		}
 		else if (rArguments[i].first == "dt")
 		{
-			m_fdT = rArguments[i].second.toFloat();
+			getActiveConfig<LEDConfigSineWave>().m_fdT = rArguments[i].second.toFloat();
 		}
 		else if (rArguments[i].first == "rgbColorHigh")
 		{
+			assertAndSetCustomConfig();
 			int iHexAsInt;
 			std::istringstream(rArguments[i].second.c_str()) >> std::hex >> iHexAsInt;
 
-			m_iRedHigh = ((iHexAsInt >> 16) & 0xFF);
-			m_iGreenHigh = ((iHexAsInt >> 8) & 0xFF);
-			m_iBlueHigh = ((iHexAsInt) & 0xFF);
+			getActiveConfig<LEDConfigSineWave>().m_uiRedHigh = ((iHexAsInt >> 16) & 0xFF);
+			getActiveConfig<LEDConfigSineWave>().m_uiGreenHigh = ((iHexAsInt >> 8) & 0xFF);
+			getActiveConfig<LEDConfigSineWave>().m_uiBlueHigh = ((iHexAsInt) & 0xFF);
 
-			m_printFunc("High: " + String(m_iRedHigh) + " - " + String(m_iGreenHigh) + " - " + String(m_iBlueHigh));
+			m_printFunc("High: " + String(getActiveConfig<LEDConfigSineWave>().m_uiRedHigh) + " - " + String(getActiveConfig<LEDConfigSineWave>().m_uiGreenHigh) + " - " + String(getActiveConfig<LEDConfigSineWave>().m_uiBlueHigh));
 		}
 		else if (rArguments[i].first == "rgbColorLow")
 		{
+			assertAndSetCustomConfig();
 			int iHexAsInt;
 			std::istringstream(rArguments[i].second.c_str()) >> std::hex >> iHexAsInt;
 
-			m_iRedLow = ((iHexAsInt >> 16) & 0xFF);
-			m_iGreenLow = ((iHexAsInt >> 8) & 0xFF);
-			m_iBlueLow = ((iHexAsInt) & 0xFF);
+			getActiveConfig<LEDConfigSineWave>().m_uiRedLow = ((iHexAsInt >> 16) & 0xFF);
+			getActiveConfig<LEDConfigSineWave>().m_uiGreenLow = ((iHexAsInt >> 8) & 0xFF);
+			getActiveConfig<LEDConfigSineWave>().m_uiBlueLow = ((iHexAsInt) & 0xFF);
 
-			m_printFunc("Low: " + String(m_iRedLow) + " - " + String(m_iGreenLow) + " - " + String(m_iBlueLow));
+			m_printFunc("Low: " + String(getActiveConfig<LEDConfigSineWave>().m_uiRedLow) + " - " + String(getActiveConfig<LEDConfigSineWave>().m_uiGreenLow) + " - " + String(getActiveConfig<LEDConfigSineWave>().m_uiBlueLow));
 		}
 	}
 }

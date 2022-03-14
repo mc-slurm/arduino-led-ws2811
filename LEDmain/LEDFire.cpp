@@ -1,6 +1,7 @@
 #include "LEDFire.h"
 #include <Arduino.h>
 #include "FastLED.h"
+#include "GlobalDefs.h"
 
 // There are two main parameters you can play with to control the look and
 // feel of your fire: COOLING (used in step 1 above), and SPARKING (used
@@ -93,8 +94,15 @@ String LEDFire::GetSubPageLink(void) const
 	return "/fire";
 }
 
+std::unique_ptr<LEDConfigBase> LEDFire::createConfig(const String& rName)
+{
+	return nullptr; // no config.
+}
+
 void LEDFire::onEvent(std::vector<std::pair<String, String>>& rArguments)
 {
+	LEDBase::onEvent(rArguments);
+
 	for (int i = 0; i < rArguments.size(); ++i)
 	{
 		if (rArguments[i].first == "action")

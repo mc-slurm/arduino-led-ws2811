@@ -19,10 +19,6 @@ class LEDRGB : public LEDBase
 		
 	protected:
 		virtual void onEvent(std::vector<std::pair<String, String>>& rArguments) override;
-	
-	private:
-		uint8_t m_iRed = 128;
-		uint8_t m_iBlue = 128;
-		uint8_t m_iGreen = 128;
+		std::unique_ptr<LEDConfigBase> createConfig(const String& rName);
 };
 #endif
