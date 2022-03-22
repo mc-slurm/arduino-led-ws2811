@@ -14,7 +14,41 @@
 #define COLOR_ORDER GRB
 #define LED_PIN_27 27
 
+//#define TEST_EEPROM
+
 const String globalPage = "/global";
+
+#ifdef TEST_EEPROM
+class CData : public Serializable
+{
+  public:
+    CData(void) {}
+    ~CData(void) {}
+    public:
+      virtual void Serialize(StreamEEPROMWrite& rStream) const
+      {
+        rStream.Write(a);
+        rStream.Write(f);
+        rStream.Write(b);
+        rStream.Write(str);
+      }
+      virtual void Serialize(const StreamEEPROMRead& rStream)
+      {
+        rStream.Read(a);
+        rStream.Read(f);
+        rStream.Read(b);
+        rStream.Read(str);
+      }
+    protected:
+      virtual uint32_t getVersion(void) const { return 0; }
+
+  public:
+    int a;
+    float f;
+    bool b;  
+    String str;
+};
+#endif
 
 struct LEDController::SData
 {
@@ -36,6 +70,10 @@ struct LEDController::SData
 	
 	std::vector<std::unique_ptr<LEDBase>> availableLEDFunctions;
 	CRGB* pLeds = nullptr;
+	
+	#ifdef TEST_EEPROM
+	CData data;
+	#endif
 };
 
 LEDController::LEDController(void)
@@ -151,8 +189,8 @@ void LEDController::CreateHTML(String& rHTMLString)
 
 	rHTMLString += "<script>\n";
 	rHTMLString += "	function configAction(curId) {\n";
-	rHTMLString += "        var destURL = 'http://" + m_spData->url + "?configAction=' + curId;\n";
-	rHTMLString += "		alert(destURL);\n";
+	rHTMLString += "        var destURL = 'http://" + m_spData->url + "/global?configAction=' + curId;\n";
+	//rHTMLString += "		alert(destURL);\n";
 	rHTMLString += "		window.location.href = destURL\n";
 	rHTMLString += "	}\n";
 	rHTMLString += "</script>\n";
@@ -253,9 +291,9 @@ void LEDController::Setup(const String& rURL, uint8_t iLEDPin, int iNumLEDs, uin
 	if (m_printFunc != nullptr)
 		m_printFunc("LEDController::registerLEDFunctions");
 	m_spData->availableLEDFunctions.push_back(make_unique<LEDRGB>());
-	m_spData->availableLEDFunctions.push_back(make_unique<LEDFire>());
-	m_spData->availableLEDFunctions.push_back(make_unique<LEDSineWave>());
-	m_spData->availableLEDFunctions.push_back(make_unique<LEDShot>());
+	// m_spData->availableLEDFunctions.push_back(make_unique<LEDFire>());
+	// m_spData->availableLEDFunctions.push_back(make_unique<LEDSineWave>());
+	// m_spData->availableLEDFunctions.push_back(make_unique<LEDShot>());
 	
 	for (int i = 0; i < m_spData->availableLEDFunctions.size(); ++i)
 	{
@@ -438,14 +476,19 @@ void LEDController::OnEvent(const String& rURL, std::vector<std::pair<String, St
     }
 }
 
+#ifndef TEST_EEPROM
 void LEDController::SaveConfigs(void) const
 {
 	m_printFunc("LEDController::SaveConfigs");
 	try
 	{
-		StreamEEPROM stream;
+		m_printFunc("creating stream");
+		StreamEEPROMWrite stream;
+		stream.RegisterPrintFunction(m_printFunc);
+		m_printFunc("Number of LED functions to serialize: " + String(m_spData->availableLEDFunctions.size()));
 		for (int i = 0; i < m_spData->availableLEDFunctions.size(); ++i)
 		{
+			m_printFunc("Serializing function " + m_spData->availableLEDFunctions[i]->GetSubPage() + " index " + String(i));
 			m_spData->availableLEDFunctions[i]->Serialize(stream);
 		}
 		
@@ -467,13 +510,17 @@ void LEDController::LoadConfigs(void)
 	m_printFunc("LEDController::LoadConfigs");
 	try
 	{
-		StreamEEPROM stream;
+		m_printFunc("creating stream");
+		StreamEEPROMRead stream;
+		stream.RegisterPrintFunction(m_printFunc);
+		m_printFunc("reading stream");
+		m_printFunc("Reading from EEPROM (size: " + String(stream.GetSize()) + ")");
 		stream.ReadEEPROM(0); // read all from EEPROM.
 		{
-			const StreamEEPROM& rStream = stream;
 			for (int i = 0; i < m_spData->availableLEDFunctions.size(); ++i)
 			{
-				m_spData->availableLEDFunctions[i]->Serialize(rStream);
+				m_printFunc("Serializing function " + m_spData->availableLEDFunctions[i]->GetSubPage() + " index " + String(i));
+				m_spData->availableLEDFunctions[i]->Serialize(stream);
 			}		
 		}
 	}
@@ -483,3 +530,69 @@ void LEDController::LoadConfigs(void)
 	}
 }
 
+#else
+
+void LEDController::SaveConfigs(void) const
+{
+	CData& data = m_spData->data;
+	data.a = 2;
+	data.f = 3.f;
+	data.b = true;
+	data.str = "ok";
+	m_printFunc("init data [" + String(data.a) + ", " + String(data.f) + ", " + (data.b ? "true" : "false") + ", " + data.str + "]");
+
+	m_printFunc("LEDController::SaveConfigs");
+	try
+	{
+		m_printFunc("creating stream");
+		StreamEEPROMWrite stream;
+		stream.RegisterPrintFunction(m_printFunc);
+		m_printFunc("Number of LED functions to serialize: " + String(m_spData->availableLEDFunctions.size()));
+		data.Serialize(stream);
+		
+		m_printFunc("Writing to EEPROM (size: " + String(stream.GetSize()) + ")");
+		if (stream.GetSize() > 255)
+		{
+			throw 0;
+		}
+		stream.WriteEEPROM(0); // write all from EEPROM.
+	}
+	catch(...)
+	{
+		
+	}
+}
+	
+void LEDController::LoadConfigs(void)
+{
+	m_printFunc("LEDController::LoadConfigs");
+	try
+	{
+		m_printFunc("creating stream");
+		StreamEEPROMRead stream;
+		stream.RegisterPrintFunction(m_printFunc);
+		m_printFunc("reading stream");
+		m_printFunc("Reading from EEPROM (size: " + String(stream.GetSize()) + ")");
+		stream.ReadEEPROM(0); // read all from EEPROM.
+        CData dataTest;
+        dataTest.Serialize(stream);
+		
+		 m_printFunc("load [" + String(dataTest.a) + ", " + String(dataTest.f) + ", " + (dataTest.b ? "true" : "false") + ", " + dataTest.str + "]");
+  
+		CData& data = m_spData->data;
+        if ((data.a != dataTest.a) || (data.f != dataTest.f) || (data.b != dataTest.b)|| (data.str != dataTest.str))
+        {
+          m_printFunc("Test failed");
+        }
+        else
+        {
+          m_printFunc("Test OK!");
+        }
+	}
+	catch(...)
+	{
+		
+	}
+}
+
+#endif

@@ -2,6 +2,8 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
+#define EEPROM_SIZE 256
+
 StreamEEPROM::StreamEEPROM(void)
 {
 	
@@ -11,55 +13,49 @@ StreamEEPROM::~StreamEEPROM(void)
 	
 }
 
-void StreamEEPROM::WriteEEPROM(uint32_t uiPosition)
+void StreamEEPROMWrite::WriteEEPROM(uint32_t uiPosition)
 {
-	EEPROM.write(uiPosition++, m_bytes.size());
+	if (!EEPROM.begin(EEPROM_SIZE))
+	{
+		m_printFunc("failed to initialise EEPROM");
+	}
+
+	m_printFunc("StreamEEPROMWrite");
+	uint8_t uiSize = m_bytes.size();
+	m_printFunc("- size: " + String(m_bytes.size()));
+	EEPROM.write(uiPosition++, uiSize);
+	//EEPROM.put(uiPosition++, uiSize);
 	for (uint32_t i = 0; i < m_bytes.size(); ++i)
 	{
+		m_printFunc("- writing pos " + String(i) + " [val " + String(m_bytes[i]) + "]");
 		EEPROM.write(uiPosition++, m_bytes[i]);
+		//EEPROM.put(uiPosition++, m_bytes[i]);
 	}
+	m_printFunc("- commit");
+	EEPROM.commit();
+	EEPROM.end();
+	m_printFunc("- size in EEPROM: " + String(EEPROM.length()));
+	m_printFunc("- done.");
 }
 
-void StreamEEPROM::ReadEEPROM(uint32_t uiPosition)
+void StreamEEPROMRead::ReadEEPROM(uint32_t uiPosition)
 {
-	size_t uiSize = EEPROM.read(uiPosition++);
+	if (!EEPROM.begin(EEPROM_SIZE))
+	{
+		m_printFunc("failed to initialise EEPROM");
+	}
+	
+	m_printFunc("StreamEEPROMRead");
+	uint8_t uiSize = 0;
+	uiSize = EEPROM.read(uiPosition++);
+	//EEPROM.get(uiPosition++, uiSize);
+	m_printFunc("- size: " + String(m_bytes.size()));
+	m_bytes.resize((size_t)uiSize);
 	for (uint32_t i = 0; i < uiSize; ++i)
 	{
 		m_bytes[i] = EEPROM.read(uiPosition++);	
+		//EEPROM.get(uiPosition++, m_bytes[i]);	
 	}
+	m_printFunc("- done.");
+	EEPROM.end();
 }
-
-
-// StreamEEPROM& StreamEEPROM::operator<<(StreamEEPROM& rStreamEEPROM, const bool& rVal)		{ write<bool>(rVal); return *this; }
-// StreamEEPROM& StreamEEPROM::operator<<(StreamEEPROM& rStreamEEPROM, const char& rVal)		{ write<char>(rVal); return *this; }
-
-
-// StreamEEPROM& StreamEEPROM::operator<<(StreamEEPROM& rStreamEEPROM, const uint8_t& rVal)		{ write<uint8_t>(rVal); return *this; }
-// StreamEEPROM& StreamEEPROM::operator<<(StreamEEPROM& rStreamEEPROM, const uint16_t& rVal)	{ write<uint16_t>(rVal); return *this; }
-// StreamEEPROM& StreamEEPROM::operator<<(StreamEEPROM& rStreamEEPROM, const uint32_t& rVal)	{ write<uint32_t>(rVal); return *this; }
-// StreamEEPROM& StreamEEPROM::operator<<(StreamEEPROM& rStreamEEPROM, const uint64_t& rVal)	{ write<uint64_t>(rVal); return *this; }
-
-// StreamEEPROM& StreamEEPROM::operator<<(StreamEEPROM& rStreamEEPROM, const int8_t& rVal)		{ write<int8_t>(rVal); return *this; }
-// StreamEEPROM& StreamEEPROM::operator<<(StreamEEPROM& rStreamEEPROM, const int16_t& rVal)		{ write<int16_t>(rVal); return *this; }
-// StreamEEPROM& StreamEEPROM::operator<<(StreamEEPROM& rStreamEEPROM, const int32_t& rVal)		{ write<int32_t>(rVal); return *this; }
-// StreamEEPROM& StreamEEPROM::operator<<(StreamEEPROM& rStreamEEPROM, const int64_t& rVal)		{ write<int64_t>(rVal); return *this; }
-
-// StreamEEPROM& StreamEEPROM::operator<<(StreamEEPROM& rStreamEEPROM, String& rVal)			{ write<String>(rVal.c_str()); return *this; }
-
-
-
-// StreamEEPROM& StreamEEPROM::operator>>(StreamEEPROM& rStreamEEPROM, bool& rVal)			{ read<bool>(rVal); return *this; }
-// StreamEEPROM& StreamEEPROM::operator>>(StreamEEPROM& rStreamEEPROM, char& rVal)			{ read<char>(rVal); return *this; }
-
-
-// StreamEEPROM& StreamEEPROM::operator>>(StreamEEPROM& rStreamEEPROM, uint8_t& rVal)		{ read<uint8_t>(rVal); return *this; }
-// StreamEEPROM& StreamEEPROM::operator>>(StreamEEPROM& rStreamEEPROM, uint16_t& rVal)		{ read<uint16_t>(rVal); return *this; }
-// StreamEEPROM& StreamEEPROM::operator>>(StreamEEPROM& rStreamEEPROM, uint32_t& rVal)		{ read<uint32_t>(rVal); return *this; }
-// StreamEEPROM& StreamEEPROM::operator>>(StreamEEPROM& rStreamEEPROM, uint64_t& rVal)		{ read<uint64_t>(rVal); return *this; }
-
-// StreamEEPROM& StreamEEPROM::operator>>(StreamEEPROM& rStreamEEPROM, int8_t& rVal)		{ read<int8_t>(rVal); return *this; }
-// StreamEEPROM& StreamEEPROM::operator>>(StreamEEPROM& rStreamEEPROM, int16_t& rVal)		{ read<int16_t>(rVal); return *this; }
-// StreamEEPROM& StreamEEPROM::operator>>(StreamEEPROM& rStreamEEPROM, int32_t& rVal)		{ read<int32_t>(rVal); return *this; }
-// StreamEEPROM& StreamEEPROM::operator>>(StreamEEPROM& rStreamEEPROM, int64_t& rVal)		{ read<int64_t>(rVal); return *this; }
-
-// StreamEEPROM& StreamEEPROM::operator>>(StreamEEPROM& rStreamEEPROM, String& rVal)		{ read<String>(rVal.c_str()); return *this; }

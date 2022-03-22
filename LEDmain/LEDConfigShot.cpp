@@ -3,7 +3,7 @@
 
 const uint32_t c_uiVersion = 0;
 
-void LEDConfigShot::Serialize(StreamEEPROM& rStream) const
+void LEDConfigShot::Serialize(StreamEEPROMWrite& rStream) const
 {
 	rStream.Write(c_uiVersion);
 	rStream.Write(m_uiSpeed);
@@ -13,7 +13,7 @@ void LEDConfigShot::Serialize(StreamEEPROM& rStream) const
 	rStream.Write(m_uiBlue);
 }
 
-void LEDConfigShot::Serialize(const StreamEEPROM& rStream)
+void LEDConfigShot::Serialize(const StreamEEPROMRead& rStream)
 {
 	uint32_t uiVersion = 0;
 	rStream.Read(uiVersion);

@@ -48,8 +48,8 @@ class LEDBase
 		static void CreateHTMLConfigTableRow(std::vector<std::unique_ptr<LEDConfigBase>>& rConfigs, const String& rSubPageLink, const String& rActiveConfigName, String& rHTMLString);
 
 	public:
-		void Serialize(StreamEEPROM& rStream) const;
-		void Serialize(const StreamEEPROM& rStream);	
+		void Serialize(StreamEEPROMWrite& rStream) const;
+		void Serialize(const StreamEEPROMRead& rStream);	
 
 	protected:
 		virtual void onEvent(std::vector<std::pair<String, String>>& rArguments);

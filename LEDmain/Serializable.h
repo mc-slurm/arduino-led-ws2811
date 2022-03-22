@@ -3,13 +3,14 @@
 
 #pragma once
 
-class StreamEEPROM;
+class StreamEEPROMRead;
+class StreamEEPROMWrite;
 
 class Serializable
 {
 	public:
-		virtual void Serialize(StreamEEPROM& rStream) const = 0;
-		virtual void Serialize(const StreamEEPROM& rStream) = 0;	
+		virtual void Serialize(StreamEEPROMWrite& rStream) const = 0;
+		virtual void Serialize(const StreamEEPROMRead& rStream) = 0;	
 	protected:
 		virtual uint32_t getVersion(void) const = 0;
 };

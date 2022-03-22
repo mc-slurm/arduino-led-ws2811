@@ -6,11 +6,8 @@
 #include "NTPTime.h"
 
 /** Todos
-    - add debug-action to control m_printFunc
-    - add scheduler
-    - add brightness function
-    - add num leds function
-    - save values (eprom)
+    - define global logger class
+    - make first led red if no wifi connection
     - LEDControlPositionBySlider
     - PIMPL
 */

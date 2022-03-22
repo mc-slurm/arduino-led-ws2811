@@ -8,9 +8,9 @@
 LEDRGB::LEDRGB(void)
 {
 	m_configurations.push_back(make_unique<LEDConfigRGB>("default"));
-	m_configurations.push_back(make_unique<LEDConfigRGB>("red", 255, 0, 0));
-	m_configurations.push_back(make_unique<LEDConfigRGB>("green", 0, 255, 0));
-	m_configurations.push_back(make_unique<LEDConfigRGB>("blue", 0, 0, 255));
+	// m_configurations.push_back(make_unique<LEDConfigRGB>("red", 255, 0, 0));
+	// m_configurations.push_back(make_unique<LEDConfigRGB>("green", 0, 255, 0));
+	// m_configurations.push_back(make_unique<LEDConfigRGB>("blue", 0, 0, 255));
 }
 
 LEDRGB::~LEDRGB(void)

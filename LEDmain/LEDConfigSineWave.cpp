@@ -3,7 +3,7 @@
 
 const uint32_t c_uiVersion = 0;
 
-void LEDConfigSineWave::Serialize(StreamEEPROM& rStream) const
+void LEDConfigSineWave::Serialize(StreamEEPROMWrite& rStream) const
 {
 	rStream.Write(c_uiVersion);
 	rStream.Write(m_fk);
@@ -19,7 +19,7 @@ void LEDConfigSineWave::Serialize(StreamEEPROM& rStream) const
 	rStream.Write(m_uiBlueLow);
 }
 
-void LEDConfigSineWave::Serialize(const StreamEEPROM& rStream)
+void LEDConfigSineWave::Serialize(const StreamEEPROMRead& rStream)
 {
 	uint32_t uiVersion = 0;
 	rStream.Read(uiVersion);

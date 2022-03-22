@@ -249,33 +249,50 @@ void LEDBase::onEvent(std::vector<std::pair<String, String>>& rArguments)
 	}
 }
 
-void LEDBase::Serialize(StreamEEPROM& rStream) const
+void LEDBase::Serialize(StreamEEPROMWrite& rStream) const
 {
+	if (m_printFunc)
+	{
+		m_printFunc("LEDBase::Serialize (write)");
+	}
+	m_printFunc("write configuration version" + String(c_uiVersion));
 	rStream.Write(c_uiVersion);
+	m_printFunc("write num configurations " + String(m_configurations.size()));
 	rStream.Write((uint32_t)m_configurations.size());
 	for (int j = 0; j < m_configurations.size(); ++j)
 	{
+		m_printFunc("writing configuration " + m_configurations[j]->GetName() + " index " + String(j));
 		rStream.Write(m_configurations[j]->GetName());
 		m_configurations[j]->Serialize(rStream);
 	}
 }
 
-void LEDBase::Serialize(const StreamEEPROM& rStream)
+void LEDBase::Serialize(const StreamEEPROMRead& rStream)
 {
+	if (m_printFunc)
+	{
+		m_printFunc("LEDBase::Serialize (read)");
+	}
+	
 	m_configurations.clear();
 	
+	m_printFunc("read version");
 	uint32_t uiVersion = 0;
 	rStream.Read(uiVersion);
 	if (uiVersion >= 0)
 	{
+		m_printFunc("read num configurations");
 		uint32_t uiNumConfigurations = 0;
 		rStream.Read(uiNumConfigurations);
-
+		
 		for (int j = 0; j < uiNumConfigurations; ++j)
 		{
+			m_printFunc("read config name" + String(j));
 			String configName;
 			rStream.Read(configName);
-			createConfig(configName);
+			m_printFunc("create config " + String(j));
+			m_configurations.push_back(createConfig(configName));
+			m_printFunc("load config" + String(j));
 			m_configurations[j]->Serialize(rStream);
 		}
 	}

@@ -5,7 +5,8 @@
 
 #include "Arduino.h"
 #include "Serializable.h"
-class StreamEEPROM;
+class StreamEEPROMRead;
+class StreamEEPROMWrite;
 
 class LEDConfigBase : public Serializable
 {
@@ -14,8 +15,9 @@ class LEDConfigBase : public Serializable
 		virtual ~LEDConfigBase(void) {}
 
 	public:
-		virtual void Serialize(StreamEEPROM& rStream) const = 0;
-		virtual void Serialize(const StreamEEPROM& rStream) = 0;	
+		virtual void Serialize(StreamEEPROMWrite& rStream) const = 0;
+		virtual void Serialize(const StreamEEPROMRead& rStream) = 0;
+		
 	public:
 		virtual void SetName(const String& rName) { m_name = rName; }
 		virtual String GetName(void) const { return m_name; }

@@ -14,8 +14,8 @@ class LEDConfigRGB : public LEDConfigBase
 		virtual ~LEDConfigRGB(void) {}
 
 	public:
-		virtual void Serialize(StreamEEPROM& rStream) const;
-		virtual void Serialize(const StreamEEPROM& rStream);	
+		virtual void Serialize(StreamEEPROMWrite& rStream) const;
+		virtual void Serialize(const StreamEEPROMRead& rStream);	
 	public:
 		virtual uint32_t GetSize(void) const;
 		virtual String GetClassName(void);
