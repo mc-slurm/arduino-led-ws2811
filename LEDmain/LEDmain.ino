@@ -77,7 +77,7 @@ void setup() {
 }
 
 void loop() {
-  if (!Portal.client().available())
+  if (!Server.client().available())
   {
     LEDController::GetInstance().ShowErrorLED();
   }
