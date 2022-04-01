@@ -32,6 +32,8 @@ class LEDController : public Singleton<LEDController>
 		void Loop();
 		void OnEvent(const String& rURL, std::vector<std::pair<String, String>>& rArguments, String& rHTMLString);
 		
+		void ShowErrorLED(void);
+		
 		std::vector<String> GetSubPageLinks(void) const;
 		
 	public:

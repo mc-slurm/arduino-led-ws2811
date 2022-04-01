@@ -77,11 +77,18 @@ void setup() {
 }
 
 void loop() {
-  Portal.handleClient();
-
-  // get current time
-  tm timeInfo = NTPTime::GetInstance().GetTime();
-  LEDController::GetInstance().SetTime((uint8_t)timeInfo.tm_hour, (uint8_t)timeInfo.tm_min);
+  if (!Portal.client().available())
+  {
+    LEDController::GetInstance().ShowErrorLED();
+  }
+  else
+  {
+    Portal.handleClient();
   
-  LEDController::GetInstance().Loop();
+    // get current time
+    tm timeInfo = NTPTime::GetInstance().GetTime();
+    LEDController::GetInstance().SetTime((uint8_t)timeInfo.tm_hour, (uint8_t)timeInfo.tm_min);
+    
+    LEDController::GetInstance().Loop();
+  }
 }

@@ -291,9 +291,9 @@ void LEDController::Setup(const String& rURL, uint8_t iLEDPin, int iNumLEDs, uin
 	if (m_printFunc != nullptr)
 		m_printFunc("LEDController::registerLEDFunctions");
 	m_spData->availableLEDFunctions.push_back(make_unique<LEDRGB>());
-	// m_spData->availableLEDFunctions.push_back(make_unique<LEDFire>());
-	// m_spData->availableLEDFunctions.push_back(make_unique<LEDSineWave>());
-	// m_spData->availableLEDFunctions.push_back(make_unique<LEDShot>());
+	m_spData->availableLEDFunctions.push_back(make_unique<LEDFire>());
+	m_spData->availableLEDFunctions.push_back(make_unique<LEDSineWave>());
+	m_spData->availableLEDFunctions.push_back(make_unique<LEDShot>());
 	
 	for (int i = 0; i < m_spData->availableLEDFunctions.size(); ++i)
 	{
@@ -310,6 +310,14 @@ void LEDController::Setup(const String& rURL, uint8_t iLEDPin, int iNumLEDs, uin
 
 	// Set all black.
 	LEDBase::SetBlack(m_spData->pLeds, m_spData->iNumLEDs);
+}
+
+void LEDController::ShowErrorLED(void)
+{
+	// set first led red.
+	m_spData->pLeds[0] = CRGB::Red;
+	FastLED.show(); // display this frame
+	FastLED.delay(1000 / m_spData->iUpdateRate);	
 }
 
 void LEDController::Loop()

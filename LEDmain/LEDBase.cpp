@@ -99,7 +99,7 @@ void LEDBase::CreateHTMLAddConfigFunction(const String& rURL, const String& rSub
 	rHTMLString += "	function addConfig() {\n";
 	rHTMLString += "		var inputVal = document.getElementById(\"configname\").value;\n";
 	rHTMLString += "        var destURL = 'http://" + rURL + rSubPage + "?" + getConfigCreateString() + "=' + inputVal;\n";
-	rHTMLString += "		alert(destURL);\n";
+	//rHTMLString += "		alert(destURL);\n";
 	rHTMLString += "		window.location.href = destURL\n";
 	rHTMLString += "	}\n";
 	rHTMLString += "</script>\n";
@@ -190,6 +190,7 @@ void LEDBase::assertAndSetCustomConfig(void)
 		{
 			// copy current settings.
 			*m_configurations[j] = *m_configurations[m_uiActiveConfig];
+			m_configurations[j]->SetName("custom");
 			// set custom active
 			m_uiActiveConfig = j;
 			break;
@@ -237,6 +238,7 @@ void LEDBase::onEvent(std::vector<std::pair<String, String>>& rArguments)
 
 				// copy settings
 				*m_configurations[m_configurations.size() - 1] = *m_configurations[m_uiActiveConfig];
+				m_configurations[m_configurations.size() - 1]->SetName(String(rArguments[i].second));
 
 				if (bActiveIsCustom)
 				{

@@ -49,8 +49,8 @@ void StreamEEPROMRead::ReadEEPROM(uint32_t uiPosition)
 	uint8_t uiSize = 0;
 	uiSize = EEPROM.read(uiPosition++);
 	//EEPROM.get(uiPosition++, uiSize);
-	m_printFunc("- size: " + String(m_bytes.size()));
 	m_bytes.resize((size_t)uiSize);
+	m_printFunc("- size: " + String(m_bytes.size()));
 	for (uint32_t i = 0; i < uiSize; ++i)
 	{
 		m_bytes[i] = EEPROM.read(uiPosition++);	

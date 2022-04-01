@@ -23,8 +23,8 @@ class LEDConfigRGB : public LEDConfigBase
 		virtual uint32_t getVersion(void) const;
 		
 	public:
-		uint8_t m_uiRed = 128;
-		uint8_t m_uiGreen = 128;
-		uint8_t m_uiBlue = 128;
+		uint8_t m_uiRed = 200;
+		uint8_t m_uiGreen = 255;
+		uint8_t m_uiBlue = 0;
 };
 #endif
