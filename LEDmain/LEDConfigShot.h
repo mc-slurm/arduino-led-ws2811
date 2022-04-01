@@ -16,6 +16,10 @@ class LEDConfigShot : public LEDConfigBase
 	public:
 		virtual void Serialize(StreamEEPROMWrite& rStream) const;
 		virtual void Serialize(const StreamEEPROMRead& rStream);	
+
+	public:
+		virtual LEDConfigShot& operator=(const LEDConfigShot& rConfig);
+
 	public:
 		virtual uint32_t GetSize(void) const;
 		virtual String GetClassName(void);

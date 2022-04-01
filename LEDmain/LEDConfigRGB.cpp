@@ -23,6 +23,14 @@ void LEDConfigRGB::Serialize(const StreamEEPROMRead& rStream)
 	}
 }
 
+LEDConfigRGB& LEDConfigRGB::operator=(const LEDConfigRGB& rConfig)
+{
+	LEDConfigBase::operator=(rConfig);
+	m_uiRed = rConfig.m_uiRed;
+	m_uiGreen = rConfig.m_uiGreen;
+	m_uiBlue = rConfig.m_uiBlue;
+}
+
 uint32_t LEDConfigRGB::GetSize(void) const
 {
 	return sizeof(c_uiVersion) + sizeof(m_uiRed) + sizeof(m_uiGreen) + sizeof(m_uiBlue);

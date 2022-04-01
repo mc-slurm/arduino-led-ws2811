@@ -15,10 +15,6 @@ class StreamEEPROM
 		
 	public:
 		uint32_t GetSize(void) const { return static_cast<uint32_t>(m_bytes.size()); }
-		void RegisterPrintFunction(std::function<void(const String&)> rFunc) { m_printFunc = rFunc; }
-
-	protected:
-		std::function<void(const String&)> m_printFunc;
 		
 	protected:
 		std::vector<uint8_t> m_bytes;

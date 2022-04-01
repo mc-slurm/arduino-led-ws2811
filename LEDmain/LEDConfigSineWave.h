@@ -31,6 +31,10 @@ class LEDConfigSineWave : public LEDConfigBase
 	public:
 		virtual void Serialize(StreamEEPROMWrite& rStream) const;
 		virtual void Serialize(const StreamEEPROMRead& rStream);	
+
+	public:
+		virtual LEDConfigSineWave& operator=(const LEDConfigSineWave& rConfig);
+
 	public:
 		virtual uint32_t GetSize(void) const;
 		virtual String GetClassName(void);

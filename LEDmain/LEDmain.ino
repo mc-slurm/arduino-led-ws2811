@@ -4,10 +4,10 @@
 #include <AutoConnect.h>
 #include "LEDController.h"
 #include "NTPTime.h"
+#include "Logger.h"
 
 /** Todos
-    - define global logger class
-    - make first led red if no wifi connection
+    - set first led red if no wifi connection
     - LEDControlPositionBySlider
     - PIMPL
 */
@@ -59,10 +59,21 @@ void setup() {
     Serial.println("WiFi connection failed\n");
   }
 
-  LEDController::GetInstance().RegisterPrintFunction(printCallback);
+  Logger::GetInstance().RegisterPrintFunction(printCallback);
   LEDController::GetInstance().Setup(WiFi.localIP().toString(), 27, 120, 200, 60);
+
+//  try
+//  {
+//    LEDController::GetInstance().LoadConfigs();
+//  }
+//  catch(...)
+//  {
+//    Serial.println("Loading configs failed. Reinitializing...\n");
+//    LEDController::GetInstance().Setup(WiFi.localIP().toString(), 27, 120, 200, 60);
+//  }
+
   std::vector<String> subPages = LEDController::GetInstance().GetSubPageLinks();
-  
+
   // Websites
   Server.on("/", OnRootEvent);
   Server.on("/global", OnEvent);
@@ -77,14 +88,15 @@ void setup() {
 }
 
 void loop() {
-  if (!Server.client().available())
+  Portal.handleClient();
+
+/*  if (!Server.client().available())
   {
+    Serial.println("Show Error LED\n");
     LEDController::GetInstance().ShowErrorLED();
   }
-  else
+  else */
   {
-    Portal.handleClient();
-  
     // get current time
     tm timeInfo = NTPTime::GetInstance().GetTime();
     LEDController::GetInstance().SetTime((uint8_t)timeInfo.tm_hour, (uint8_t)timeInfo.tm_min);

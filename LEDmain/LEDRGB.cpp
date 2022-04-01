@@ -4,6 +4,7 @@
 #include <sstream>
 #include "LEDConfigRGB.h"
 #include "GlobalDefs.h"
+#include "Logger.h"
 
 LEDRGB::LEDRGB(void)
 {
@@ -118,7 +119,7 @@ void LEDRGB::onEvent(std::vector<std::pair<String, String>>& rArguments)
 			getActiveConfig<LEDConfigRGB>().m_uiGreen = ((iHexAsInt >> 8) & 0xFF);
 			getActiveConfig<LEDConfigRGB>().m_uiBlue = ((iHexAsInt) & 0xFF);
 			
-			m_printFunc(String(getActiveConfig<LEDConfigRGB>().m_uiRed) + " - " + String(getActiveConfig<LEDConfigRGB>().m_uiGreen) + " - " + String(getActiveConfig<LEDConfigRGB>().m_uiBlue));
+			LED_LOG(String(getActiveConfig<LEDConfigRGB>().m_uiRed) + " - " + String(getActiveConfig<LEDConfigRGB>().m_uiGreen) + " - " + String(getActiveConfig<LEDConfigRGB>().m_uiBlue));
 		}
 	}
 }

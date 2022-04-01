@@ -3,6 +3,7 @@
 #include "FastLED.h"
 #include "LEDConfigSineWave.h"
 #include "GlobalDefs.h"
+#include "Logger.h"
 #include <sstream>
 
 LEDSineWave::LEDSineWave(void)
@@ -145,6 +146,7 @@ void LEDSineWave::onEvent(std::vector<std::pair<String, String>>& rArguments)
 		}
 		else if (rArguments[i].first == "dt")
 		{
+			assertAndSetCustomConfig();
 			getActiveConfig<LEDConfigSineWave>().m_fdT = rArguments[i].second.toFloat();
 		}
 		else if (rArguments[i].first == "rgbColorHigh")
@@ -157,7 +159,7 @@ void LEDSineWave::onEvent(std::vector<std::pair<String, String>>& rArguments)
 			getActiveConfig<LEDConfigSineWave>().m_uiGreenHigh = ((iHexAsInt >> 8) & 0xFF);
 			getActiveConfig<LEDConfigSineWave>().m_uiBlueHigh = ((iHexAsInt) & 0xFF);
 
-			m_printFunc("High: " + String(getActiveConfig<LEDConfigSineWave>().m_uiRedHigh) + " - " + String(getActiveConfig<LEDConfigSineWave>().m_uiGreenHigh) + " - " + String(getActiveConfig<LEDConfigSineWave>().m_uiBlueHigh));
+			LED_LOG("High: " + String(getActiveConfig<LEDConfigSineWave>().m_uiRedHigh) + " - " + String(getActiveConfig<LEDConfigSineWave>().m_uiGreenHigh) + " - " + String(getActiveConfig<LEDConfigSineWave>().m_uiBlueHigh));
 		}
 		else if (rArguments[i].first == "rgbColorLow")
 		{
@@ -169,7 +171,7 @@ void LEDSineWave::onEvent(std::vector<std::pair<String, String>>& rArguments)
 			getActiveConfig<LEDConfigSineWave>().m_uiGreenLow = ((iHexAsInt >> 8) & 0xFF);
 			getActiveConfig<LEDConfigSineWave>().m_uiBlueLow = ((iHexAsInt) & 0xFF);
 
-			m_printFunc("Low: " + String(getActiveConfig<LEDConfigSineWave>().m_uiRedLow) + " - " + String(getActiveConfig<LEDConfigSineWave>().m_uiGreenLow) + " - " + String(getActiveConfig<LEDConfigSineWave>().m_uiBlueLow));
+			LED_LOG("Low: " + String(getActiveConfig<LEDConfigSineWave>().m_uiRedLow) + " - " + String(getActiveConfig<LEDConfigSineWave>().m_uiGreenLow) + " - " + String(getActiveConfig<LEDConfigSineWave>().m_uiBlueLow));
 		}
 	}
 }

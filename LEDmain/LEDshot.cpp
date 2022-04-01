@@ -3,6 +3,7 @@
 #include "FastLED.h"
 #include "LEDConfigShot.h"
 #include "GlobalDefs.h"
+#include "Logger.h"
 #include <sstream>
 
 LEDShot::LEDShot(void)
@@ -83,7 +84,7 @@ void LEDShot::UpdateLEDs(CRGB* leds, int iNumLEDs)
 		float fBlue = ((float)(getActiveConfig<LEDConfigShot>().m_uiSize - m_uiShotPosition) / (float)getActiveConfig<LEDConfigShot>().m_uiSize) * (float)getActiveConfig<LEDConfigShot>().m_uiBlue;
 		leds[0] =  CRGB((uint8_t)fRed, (uint8_t)fGreen, (uint8_t)fBlue);
 
-		//m_printFunc("Pos: " + String(m_uiShotPosition) + " Color: " + String((uint8_t)fRed) + " - " + String((uint8_t)fGreen) + " - " + String((uint8_t)fBlue));
+		//LED_LOG("Pos: " + String(m_uiShotPosition) + " Color: " + String((uint8_t)fRed) + " - " + String((uint8_t)fGreen) + " - " + String((uint8_t)fBlue));
 		++m_uiShotPosition;
 	}
 	else
@@ -127,7 +128,7 @@ void LEDShot::onEvent(std::vector<std::pair<String, String>>& rArguments)
 			else if (rArguments[i].second == "shot")
 			{
 				m_uiShotPosition = 0;
-				m_printFunc("shot!");
+				LED_LOG("shot!");
 			}
 		}
 		else if (rArguments[i].first == "speed")
@@ -150,7 +151,7 @@ void LEDShot::onEvent(std::vector<std::pair<String, String>>& rArguments)
 			getActiveConfig<LEDConfigShot>().m_uiGreen = ((iHexAsInt >> 8) & 0xFF);
 			getActiveConfig<LEDConfigShot>().m_uiBlue = ((iHexAsInt) & 0xFF);
 
-			m_printFunc("Color: " + String(getActiveConfig<LEDConfigShot>().m_uiRed) + " - " + String(getActiveConfig<LEDConfigShot>().m_uiGreen) + " - " + String(getActiveConfig<LEDConfigShot>().m_uiBlue));
+			LED_LOG("Color: " + String(getActiveConfig<LEDConfigShot>().m_uiRed) + " - " + String(getActiveConfig<LEDConfigShot>().m_uiGreen) + " - " + String(getActiveConfig<LEDConfigShot>().m_uiBlue));
 		}
 	}
 }

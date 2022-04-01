@@ -33,7 +33,6 @@ class LEDBase
 	public:
 		void SetUpdateFrequency(const int& iFrequency) { m_iUpdateFrequency = iFrequency; }
 		void SetURL(const String& rURL) { m_URL = rURL; }
-		void RegisterPrintFunction(std::function<void(const String&)> rFunc) { m_printFunc = rFunc; }
 
 	public:
 		static void CreateHTMLHeader(const String& rTitle, String& rHTMLString);
@@ -61,8 +60,6 @@ class LEDBase
 		int m_iUpdateFrequency = 100;
 		String m_URL = "";
 		
-		std::function<void(const String&)> m_printFunc;
-
 	protected:
 		template<typename T>
 		T& getConfig(uint32_t uiIndex) { return static_cast<T&>(*m_configurations[uiIndex]); }

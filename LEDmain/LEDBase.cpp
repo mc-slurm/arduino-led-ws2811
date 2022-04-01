@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include "FastLED.h"
 #include "StreamEEPROM.h"
+#include "Logger.h"
 
 const uint32_t c_uiVersion = 0;
 
@@ -180,20 +181,26 @@ bool LEDBase::isConfigNameExists(const String& rName) const
 
 void LEDBase::assertAndSetCustomConfig(void)
 {
+	LED_LOG("assertAndSetCustomConfig");
 	if (!isConfigNameExists("custom"))
 	{
-		createConfig("custom");
+		LED_LOG("\t- creating config");
+		m_configurations.push_back(createConfig("custom"));
 	}
 	for (int j = 0; j < m_configurations.size(); ++j)
 	{
 		if (m_configurations[j]->GetName() == "custom")
 		{
-			// copy current settings.
-			*m_configurations[j] = *m_configurations[m_uiActiveConfig];
-			m_configurations[j]->SetName("custom");
-			// set custom active
-			m_uiActiveConfig = j;
-			break;
+			if (j != m_uiActiveConfig)
+			{
+				// copy current settings.
+				*m_configurations[j] = *m_configurations[m_uiActiveConfig];
+				m_configurations[j]->SetName("custom");
+				// set custom active
+				LED_LOG("old config : " + String(m_uiActiveConfig) + ", new config: " + String(j));
+				m_uiActiveConfig = j;
+				break;
+			}
 		}
 	}
 }
@@ -232,20 +239,22 @@ void LEDBase::onEvent(std::vector<std::pair<String, String>>& rArguments)
 		{
 			if (!isConfigNameReserved(String(rArguments[i].second)))
 			{
-				bool bActiveIsCustom = (m_configurations[m_uiActiveConfig]->GetName() == "custom");
+				m_configurations[m_uiActiveConfig]->SetName(String(rArguments[i].second));
+				// bool bActiveIsCustom = (m_configurations[m_uiActiveConfig]->GetName() == "custom");
 
-				m_configurations.push_back(createConfig(String(rArguments[i].second)));
+				// m_configurations.push_back(createConfig(String(rArguments[i].second)));
 
-				// copy settings
-				*m_configurations[m_configurations.size() - 1] = *m_configurations[m_uiActiveConfig];
-				m_configurations[m_configurations.size() - 1]->SetName(String(rArguments[i].second));
+				// LED_LOG("copy config from: " + m_configurations[m_uiActiveConfig]->GetName() + " to: " + m_configurations[m_configurations.size() - 1]->GetName());
+				// // copy settings
+				// *m_configurations[m_configurations.size() - 1] = *m_configurations[m_uiActiveConfig];
+				// m_configurations[m_configurations.size() - 1]->SetName(String(rArguments[i].second));
 
-				if (bActiveIsCustom)
-				{
-					// remove custom.
-					m_configurations.erase(m_configurations.begin() + m_uiActiveConfig);
-				}
-				m_uiActiveConfig = m_configurations.size() - 1;
+				// if (bActiveIsCustom)
+				// {
+					// // remove custom.
+					// m_configurations.erase(m_configurations.begin() + m_uiActiveConfig);
+				// }
+				// m_uiActiveConfig = m_configurations.size() - 1;
 			}
 		}
 	}
@@ -253,49 +262,47 @@ void LEDBase::onEvent(std::vector<std::pair<String, String>>& rArguments)
 
 void LEDBase::Serialize(StreamEEPROMWrite& rStream) const
 {
-	if (m_printFunc)
-	{
-		m_printFunc("LEDBase::Serialize (write)");
-	}
-	m_printFunc("write configuration version" + String(c_uiVersion));
+	LED_LOG("LEDBase::Serialize (write)");
+	LED_LOG("write configuration version" + String(c_uiVersion));
 	rStream.Write(c_uiVersion);
-	m_printFunc("write num configurations " + String(m_configurations.size()));
+	LED_LOG("write num configurations " + String(m_configurations.size()));
 	rStream.Write((uint32_t)m_configurations.size());
 	for (int j = 0; j < m_configurations.size(); ++j)
 	{
-		m_printFunc("writing configuration " + m_configurations[j]->GetName() + " index " + String(j));
+		LED_LOG("writing configuration " + m_configurations[j]->GetName() + " index " + String(j));
 		rStream.Write(m_configurations[j]->GetName());
 		m_configurations[j]->Serialize(rStream);
 	}
+	
+	rStream.Write(m_uiActiveConfig);
 }
 
 void LEDBase::Serialize(const StreamEEPROMRead& rStream)
 {
-	if (m_printFunc)
-	{
-		m_printFunc("LEDBase::Serialize (read)");
-	}
+	LED_LOG("LEDBase::Serialize (read)");
 	
 	m_configurations.clear();
 	
-	m_printFunc("read version");
+	LED_LOG("read version");
 	uint32_t uiVersion = 0;
 	rStream.Read(uiVersion);
 	if (uiVersion >= 0)
 	{
-		m_printFunc("read num configurations");
+		LED_LOG("read num configurations");
 		uint32_t uiNumConfigurations = 0;
 		rStream.Read(uiNumConfigurations);
 		
 		for (int j = 0; j < uiNumConfigurations; ++j)
 		{
-			m_printFunc("read config name" + String(j));
+			LED_LOG("read config name" + String(j));
 			String configName;
 			rStream.Read(configName);
-			m_printFunc("create config " + String(j));
+			LED_LOG("create config " + String(j));
 			m_configurations.push_back(createConfig(configName));
-			m_printFunc("load config" + String(j));
+			LED_LOG("load config" + String(j));
 			m_configurations[j]->Serialize(rStream);
 		}
 	}
+
+	rStream.Read(m_uiActiveConfig);
 }

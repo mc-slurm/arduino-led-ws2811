@@ -19,6 +19,9 @@ class LEDConfigBase : public Serializable
 		virtual void Serialize(const StreamEEPROMRead& rStream) = 0;
 		
 	public:
+		virtual LEDConfigBase& operator=(const LEDConfigBase& rConfig) { m_name = rConfig.m_name; return *this; }
+
+	public:
 		virtual void SetName(const String& rName) { m_name = rName; }
 		virtual String GetName(void) const { return m_name; }
 		virtual uint32_t GetSize(void) const = 0;

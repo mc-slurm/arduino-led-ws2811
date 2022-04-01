@@ -39,6 +39,22 @@ void LEDConfigSineWave::Serialize(const StreamEEPROMRead& rStream)
 	}
 }
 
+LEDConfigSineWave& LEDConfigSineWave::operator=(const LEDConfigSineWave& rConfig)
+{
+	LEDConfigBase::operator=(rConfig);
+	m_fk = rConfig.m_fk;
+	m_fw = rConfig.m_fw;
+	m_fo = rConfig.m_fo;
+	m_fD = rConfig.m_fD;
+	m_fdT = rConfig.m_fdT;
+	m_uiRedHigh = rConfig.m_uiRedHigh;
+	m_uiGreenHigh = rConfig.m_uiGreenHigh;
+	m_uiBlueHigh = rConfig.m_uiBlueHigh;
+	m_uiRedLow = rConfig.m_uiRedLow;
+	m_uiGreenLow = rConfig.m_uiGreenLow;
+	m_uiBlueLow = rConfig.m_uiBlueLow;
+}
+
 uint32_t LEDConfigSineWave::GetSize(void) const
 {
 	return sizeof(c_uiVersion) + sizeof(m_fk) + sizeof(m_fw) + sizeof(m_fo) + sizeof(m_fD) + sizeof(m_fdT) +

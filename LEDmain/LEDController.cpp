@@ -7,6 +7,7 @@
 #include "LEDShot.h"
 #include "GlobalDefs.h"
 #include "StreamEEPROM.h"
+#include "Logger.h"
 #include <sstream>
 #include <string>
 
@@ -70,6 +71,8 @@ struct LEDController::SData
 	
 	std::vector<std::unique_ptr<LEDBase>> availableLEDFunctions;
 	CRGB* pLeds = nullptr;
+	
+	String strLogMessage;
 	
 	#ifdef TEST_EEPROM
 	CData data;
@@ -160,6 +163,8 @@ void LEDController::CreateHTML(String& rHTMLString)
 	rHTMLString += "  </td>\n";
 	rHTMLString += "  <td>\n";
 	
+	rHTMLString += "<p style=\"color:red;\">" + m_spData->strLogMessage + "</p>\n";
+	
 	auto adaptTimeVal = [](uint8_t uiVal) -> String
 	{
 		if (uiVal < 10)
@@ -199,12 +204,14 @@ void LEDController::CreateHTML(String& rHTMLString)
 	LEDBase::CreateHTMLUpdateValueFunction(m_spData->url, globalPage, rHTMLString);
 	
 	LEDBase::CreateHTMLFooter(rHTMLString);
+	
+	// reset log message.
+	m_spData->strLogMessage = "";
 }
 
 void LEDController::SetNumLEDs(int iNumLEDs)
 {
-	if (m_printFunc != nullptr)
-		m_printFunc("LEDController::SetNumLEDs");
+	LED_LOG("LEDController::SetNumLEDs");
 
 	bool bChange = (iNumLEDs > 0 && m_spData->uiLastActive < iNumLEDs);
 	if (bChange)
@@ -265,8 +272,7 @@ void LEDController::registerLEDs(void)
 {
 	if (m_spData->iLEDPin == 27)
 	{
-		if (m_printFunc != nullptr)
-			m_printFunc("LEDController::addLeds");
+		LED_LOG("LEDController::addLeds");
 		FastLED.addLeds<CHIPSET, LED_PIN_27, COLOR_ORDER>(m_spData->pLeds, m_spData->iNumLEDs).setCorrection( TypicalLEDStrip );
 	}
 	FastLED.setBrightness( m_spData->iBrightness );
@@ -274,8 +280,7 @@ void LEDController::registerLEDs(void)
 
 void LEDController::Setup(const String& rURL, uint8_t iLEDPin, int iNumLEDs, uint8_t iBrightness, int iUpdateRate)
 {
-	if (m_printFunc != nullptr)
-		m_printFunc("LEDController::Setup");
+	LED_LOG("LEDController::Setup");
 
 	m_spData = make_unique<SData>();
 	
@@ -288,8 +293,7 @@ void LEDController::Setup(const String& rURL, uint8_t iLEDPin, int iNumLEDs, uin
 	
 	SetNumLEDs(m_spData->iNumLEDs);
 	
-	if (m_printFunc != nullptr)
-		m_printFunc("LEDController::registerLEDFunctions");
+	LED_LOG("LEDController::registerLEDFunctions");
 	m_spData->availableLEDFunctions.push_back(make_unique<LEDRGB>());
 	m_spData->availableLEDFunctions.push_back(make_unique<LEDFire>());
 	m_spData->availableLEDFunctions.push_back(make_unique<LEDSineWave>());
@@ -297,10 +301,6 @@ void LEDController::Setup(const String& rURL, uint8_t iLEDPin, int iNumLEDs, uin
 	
 	for (int i = 0; i < m_spData->availableLEDFunctions.size(); ++i)
 	{
-		if (m_printFunc != nullptr)
-		{
-			m_spData->availableLEDFunctions[i]->RegisterPrintFunction(m_printFunc);
-		}
 		m_spData->availableLEDFunctions[i]->SetUpdateFrequency(m_spData->iUpdateRate);
 		m_spData->availableLEDFunctions[i]->SetURL(m_spData->url);
 	}
@@ -317,7 +317,7 @@ void LEDController::ShowErrorLED(void)
 	// set first led red.
 	m_spData->pLeds[0] = CRGB::Red;
 	FastLED.show(); // display this frame
-	FastLED.delay(1000 / m_spData->iUpdateRate);	
+	FastLED.delay(5000);	
 }
 
 void LEDController::Loop()
@@ -349,24 +349,15 @@ void LEDController::Loop()
 			}
 		}
 		
-		// static uint32_t uiDebugVal = 0;
-		// if (uiDebugVal != uiCurTime)
-		// {
-			// uiDebugVal = uiCurTime;
-			// m_printFunc("last index: " + String(m_spData->uiLastActive) + "\tlast active: " + (m_spData->availableLEDFunctions[m_spData->uiLastActive]->IsActive() ? "yes" : "no"));
-			// m_printFunc("cur: " + String(m_spData->uiHour) + ":" + String(m_spData->uiMinute) + "start: " + String(m_spData->uiStartHour) + ":" + String(m_spData->uiStartMinute) + "\tend: " + String(m_spData->uiEndHour) + ":" + String(m_spData->uiEndMinute));
-			// m_printFunc("start: " + String(uiStartTime) + "\tend: " + String(uiEndTime) + "\tcur: " + String(uiCurTime) + "\tin range: " + (bIsInRange ? "yes" : "no"));
-		// }
-		
 		if (!bIsInRange && m_spData->availableLEDFunctions[m_spData->uiLastActive]->IsActive())
 		{
-			m_printFunc("DISABLE! Index " + String(m_spData->uiLastActive) + "\tTime: " + String(m_spData->uiHour) + ":" + String(m_spData->uiMinute));
+			LED_LOG("DISABLE! Index " + String(m_spData->uiLastActive) + "\tTime: " + String(m_spData->uiHour) + ":" + String(m_spData->uiMinute));
 			m_spData->availableLEDFunctions[m_spData->uiLastActive]->SetActive(false);
 			LEDBase::SetBlack(m_spData->pLeds, m_spData->iNumLEDs);
 		}
 		else if (bIsInRange && !m_spData->availableLEDFunctions[m_spData->uiLastActive]->IsActive())
 		{
-			m_printFunc("ENABLE! Index " + String(m_spData->uiLastActive) + "\tTime: " + String(m_spData->uiHour) + ":" + String(m_spData->uiMinute));
+			LED_LOG("ENABLE! Index " + String(m_spData->uiLastActive) + "\tTime: " + String(m_spData->uiHour) + ":" + String(m_spData->uiMinute));
 			m_spData->availableLEDFunctions[m_spData->uiLastActive]->SetActive(true);
 		}
 	}
@@ -407,12 +398,8 @@ void LEDController::OnEvent(const String& rURL, std::vector<std::pair<String, St
 				m_spData->uiStartHour = atoi(substr.c_str());
 				getline(ss, substr, ':');
 				m_spData->uiStartMinute = atoi(substr.c_str());
-				
-				if (m_printFunc != nullptr)
-				{
-					m_printFunc("start time: " + String(m_spData->uiStartHour) + "-" + String(m_spData->uiStartMinute));
-				}
 
+				LED_LOG("start time: " + String(m_spData->uiStartHour) + "-" + String(m_spData->uiStartMinute));
 			}
 			else if (rArguments[i].first == "toTime")
 			{
@@ -423,27 +410,25 @@ void LEDController::OnEvent(const String& rURL, std::vector<std::pair<String, St
 				getline(ss, substr, ':');
 				m_spData->uiEndMinute = atoi(substr.c_str());
 
-				if (m_printFunc != nullptr)
-				{
-					m_printFunc("end time: " + String(m_spData->uiEndHour) + "-" + String(m_spData->uiEndMinute));
-				}
+				LED_LOG("end time: " + String(m_spData->uiEndHour) + "-" + String(m_spData->uiEndMinute));
 			}
 			else if (rArguments[i].first == "scheduling")
 			{
 				m_spData->bSchedulerEnabled = !m_spData->bSchedulerEnabled;
+				LED_LOG("scheduling enabled: " + String(m_spData->bSchedulerEnabled));
 				//m_spData->bSchedulerEnabled = (rArguments[i].second == "on" ? true : false);
 			}
 			else if (rArguments[i].first == "configAction")
 			{
-				m_printFunc("configAction");
+				LED_LOG("configAction");
 				if (rArguments[i].second == "saveAll")
 				{
-					m_printFunc("- saveAll");
+					LED_LOG("- saveAll");
 					SaveConfigs();
 				}
 				else if (rArguments[i].second == "loadAll")
 				{
-					m_printFunc("- loadAll");
+					LED_LOG("- loadAll");
 					LoadConfigs();
 				}
 			}
@@ -487,20 +472,34 @@ void LEDController::OnEvent(const String& rURL, std::vector<std::pair<String, St
 #ifndef TEST_EEPROM
 void LEDController::SaveConfigs(void) const
 {
-	m_printFunc("LEDController::SaveConfigs");
+	LED_LOG("LEDController::SaveConfigs");
 	try
 	{
-		m_printFunc("creating stream");
+		LED_LOG("creating stream");
 		StreamEEPROMWrite stream;
-		stream.RegisterPrintFunction(m_printFunc);
-		m_printFunc("Number of LED functions to serialize: " + String(m_spData->availableLEDFunctions.size()));
+		
+		stream.Write(m_spData->iLEDPin);
+		stream.Write(m_spData->iNumLEDs);
+		stream.Write(m_spData->iBrightness);
+		stream.Write(m_spData->iUpdateRate);
+		stream.Write(m_spData->url);
+		stream.Write(m_spData->bSchedulerEnabled);
+		stream.Write(m_spData->uiHour);
+		stream.Write(m_spData->uiMinute);
+		stream.Write(m_spData->uiStartHour);
+		stream.Write(m_spData->uiStartMinute);
+		stream.Write(m_spData->uiEndHour);
+		stream.Write(m_spData->uiEndMinute);
+		stream.Write(m_spData->uiLastActive);
+
+		LED_LOG("Number of LED functions to serialize: " + String(m_spData->availableLEDFunctions.size()));
 		for (int i = 0; i < m_spData->availableLEDFunctions.size(); ++i)
 		{
-			m_printFunc("Serializing function " + m_spData->availableLEDFunctions[i]->GetSubPage() + " index " + String(i));
+			LED_LOG("Serializing function " + m_spData->availableLEDFunctions[i]->GetSubPage() + " index " + String(i));
 			m_spData->availableLEDFunctions[i]->Serialize(stream);
 		}
 		
-		m_printFunc("Writing to EEPROM (size: " + String(stream.GetSize()) + ")");
+		LED_LOG("Writing to EEPROM (size: " + String(stream.GetSize()) + ")");
 		if (stream.GetSize() > 255)
 		{
 			throw 0;
@@ -511,23 +510,38 @@ void LEDController::SaveConfigs(void) const
 	{
 		
 	}
+	LED_LOG("LEDController::SaveConfigs DONE.");
 }
 
 void LEDController::LoadConfigs(void)
 {
-	m_printFunc("LEDController::LoadConfigs");
+	LED_LOG("LEDController::LoadConfigs");
 	try
 	{
-		m_printFunc("creating stream");
+		LED_LOG("creating stream");
 		StreamEEPROMRead stream;
-		stream.RegisterPrintFunction(m_printFunc);
-		m_printFunc("reading stream");
-		m_printFunc("Reading from EEPROM (size: " + String(stream.GetSize()) + ")");
+		LED_LOG("reading stream");
+		LED_LOG("Reading from EEPROM (size: " + String(stream.GetSize()) + ")");
 		stream.ReadEEPROM(0); // read all from EEPROM.
+		
+		stream.Read(m_spData->iLEDPin);
+		stream.Read(m_spData->iNumLEDs);
+		stream.Read(m_spData->iBrightness);
+		stream.Read(m_spData->iUpdateRate);
+		stream.Read(m_spData->url);
+		stream.Read(m_spData->bSchedulerEnabled);
+		stream.Read(m_spData->uiHour);
+		stream.Read(m_spData->uiMinute);
+		stream.Read(m_spData->uiStartHour);
+		stream.Read(m_spData->uiStartMinute);
+		stream.Read(m_spData->uiEndHour);
+		stream.Read(m_spData->uiEndMinute);
+		stream.Read(m_spData->uiLastActive);
+
 		{
 			for (int i = 0; i < m_spData->availableLEDFunctions.size(); ++i)
 			{
-				m_printFunc("Serializing function " + m_spData->availableLEDFunctions[i]->GetSubPage() + " index " + String(i));
+				LED_LOG("Serializing function " + m_spData->availableLEDFunctions[i]->GetSubPage() + " index " + String(i));
 				m_spData->availableLEDFunctions[i]->Serialize(stream);
 			}		
 		}
@@ -536,6 +550,7 @@ void LEDController::LoadConfigs(void)
 	{
 		
 	}
+	LED_LOG("LEDController::LoadConfigs DONE.");
 }
 
 #else
@@ -547,59 +562,57 @@ void LEDController::SaveConfigs(void) const
 	data.f = 3.f;
 	data.b = true;
 	data.str = "ok";
-	m_printFunc("init data [" + String(data.a) + ", " + String(data.f) + ", " + (data.b ? "true" : "false") + ", " + data.str + "]");
+	LED_LOG("init data [" + String(data.a) + ", " + String(data.f) + ", " + (data.b ? "true" : "false") + ", " + data.str + "]");
 
-	m_printFunc("LEDController::SaveConfigs");
+	LED_LOG("LEDController::SaveConfigs");
 	try
 	{
-		m_printFunc("creating stream");
+		LED_LOG("creating stream");
 		StreamEEPROMWrite stream;
-		stream.RegisterPrintFunction(m_printFunc);
-		m_printFunc("Number of LED functions to serialize: " + String(m_spData->availableLEDFunctions.size()));
+		LED_LOG("Number of LED functions to serialize: " + String(m_spData->availableLEDFunctions.size()));
 		data.Serialize(stream);
 		
-		m_printFunc("Writing to EEPROM (size: " + String(stream.GetSize()) + ")");
+		LED_LOG("Writing to EEPROM (size: " + String(stream.GetSize()) + ")");
 		if (stream.GetSize() > 255)
 		{
+			m_spData->strLogMessage = "SaveConfigs failed! (too many configs)";
 			throw 0;
 		}
 		stream.WriteEEPROM(0); // write all from EEPROM.
 	}
 	catch(...)
 	{
-		
 	}
 }
 	
 void LEDController::LoadConfigs(void)
 {
-	m_printFunc("LEDController::LoadConfigs");
+	LED_LOG("LEDController::LoadConfigs");
 	try
 	{
-		m_printFunc("creating stream");
+		LED_LOG("creating stream");
 		StreamEEPROMRead stream;
-		stream.RegisterPrintFunction(m_printFunc);
-		m_printFunc("reading stream");
-		m_printFunc("Reading from EEPROM (size: " + String(stream.GetSize()) + ")");
+		LED_LOG("reading stream");
+		LED_LOG("Reading from EEPROM (size: " + String(stream.GetSize()) + ")");
 		stream.ReadEEPROM(0); // read all from EEPROM.
         CData dataTest;
         dataTest.Serialize(stream);
 		
-		 m_printFunc("load [" + String(dataTest.a) + ", " + String(dataTest.f) + ", " + (dataTest.b ? "true" : "false") + ", " + dataTest.str + "]");
+		LED_LOG("load [" + String(dataTest.a) + ", " + String(dataTest.f) + ", " + (dataTest.b ? "true" : "false") + ", " + dataTest.str + "]");
   
 		CData& data = m_spData->data;
         if ((data.a != dataTest.a) || (data.f != dataTest.f) || (data.b != dataTest.b)|| (data.str != dataTest.str))
         {
-          m_printFunc("Test failed");
+          LED_LOG("Test failed");
         }
         else
         {
-          m_printFunc("Test OK!");
+          LED_LOG("Test OK!");
         }
 	}
 	catch(...)
 	{
-		
+		m_spData->strLogMessage = "LoadConfigs failed!";
 	}
 }
 
