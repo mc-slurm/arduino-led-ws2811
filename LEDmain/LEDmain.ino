@@ -7,6 +7,7 @@
 #include "Logger.h"
 
 /** Todos
+    - doc
     - set first led red if no wifi connection
     - LEDControlPositionBySlider
     - PIMPL

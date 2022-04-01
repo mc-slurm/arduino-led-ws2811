@@ -478,11 +478,11 @@ void LEDController::SaveConfigs(void) const
 		LED_LOG("creating stream");
 		StreamEEPROMWrite stream;
 		
-		stream.Write(m_spData->iLEDPin);
+		// stream.Write(m_spData->iLEDPin);
 		stream.Write(m_spData->iNumLEDs);
 		stream.Write(m_spData->iBrightness);
 		stream.Write(m_spData->iUpdateRate);
-		stream.Write(m_spData->url);
+		// stream.Write(m_spData->url);
 		stream.Write(m_spData->bSchedulerEnabled);
 		stream.Write(m_spData->uiHour);
 		stream.Write(m_spData->uiMinute);
@@ -524,11 +524,11 @@ void LEDController::LoadConfigs(void)
 		LED_LOG("Reading from EEPROM (size: " + String(stream.GetSize()) + ")");
 		stream.ReadEEPROM(0); // read all from EEPROM.
 		
-		stream.Read(m_spData->iLEDPin);
+		// stream.Read(m_spData->iLEDPin);
 		stream.Read(m_spData->iNumLEDs);
 		stream.Read(m_spData->iBrightness);
 		stream.Read(m_spData->iUpdateRate);
-		stream.Read(m_spData->url);
+		// stream.Read(m_spData->url);
 		stream.Read(m_spData->bSchedulerEnabled);
 		stream.Read(m_spData->uiHour);
 		stream.Read(m_spData->uiMinute);
