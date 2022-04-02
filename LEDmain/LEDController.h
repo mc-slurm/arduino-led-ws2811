@@ -9,6 +9,7 @@
 #include <functional>
 #include "WString.h"
 #include "Singleton.h"
+class CRGB;
 
 /**
 	Only for chipset WS2811 and color order GRB
@@ -32,7 +33,11 @@ class LEDController : public Singleton<LEDController>
 		void Loop();
 		void OnEvent(const String& rURL, std::vector<std::pair<String, String>>& rArguments, String& rHTMLString);
 		
-		void ShowErrorLED(void);
+		void ShowErrorLED(uint32_t uiMilliseconds);
+		void ShowStartupLED(uint32_t uiMilliseconds);
+		void ShowInitLED(uint32_t uiMilliseconds);
+		void ShowNoLED(void);
+		void ShowLEDStatus(uint32_t uiMilliseconds, const CRGB& rColor);
 		
 		std::vector<String> GetSubPageLinks(void) const;
 		

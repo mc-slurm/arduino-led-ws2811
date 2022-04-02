@@ -21,7 +21,8 @@ class LEDBase
 		void SetActive(bool bActive) { m_bActive = bActive; }
 		bool IsActive(void) const { return m_bActive; }
 		void OnEvent(std::vector<std::pair<String, String>>& rArguments) { onEvent(rArguments); }
-		
+
+		static void SetAll(CRGB* leds, int iNumLEDs, const CRGB& rColor);
 		static void SetBlack(CRGB* leds, int iNumLEDs);
 		
 	public:

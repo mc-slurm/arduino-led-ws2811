@@ -6,12 +6,17 @@
 
 const uint32_t c_uiVersion = 0;
 
-void LEDBase::SetBlack(CRGB* leds, int iNumLEDs)
+void LEDBase::SetAll(CRGB* leds, int iNumLEDs, const CRGB& rColor)
 {
 	for(int j = 0; j < iNumLEDs; j++)
 	{
-		leds[j] = CRGB::Black;
+		leds[j] = rColor;
 	}
+}
+
+void LEDBase::SetBlack(CRGB* leds, int iNumLEDs)
+{
+	SetAll(leds, iNumLEDs, CRGB::Black);
 }
 
 void LEDBase::CreateHTMLHeader(const String& rTitle, String& rHTMLString)

@@ -211,7 +211,7 @@ void LEDController::CreateHTML(String& rHTMLString)
 
 void LEDController::SetNumLEDs(int iNumLEDs)
 {
-	LED_LOG("LEDController::SetNumLEDs");
+	LED_LOG("* LEDController::SetNumLEDs");
 
 	bool bChange = (iNumLEDs > 0 && m_spData->uiLastActive < iNumLEDs);
 	if (bChange)
@@ -272,7 +272,7 @@ void LEDController::registerLEDs(void)
 {
 	if (m_spData->iLEDPin == 27)
 	{
-		LED_LOG("LEDController::addLeds");
+		LED_LOG("* LEDController::addLeds");
 		FastLED.addLeds<CHIPSET, LED_PIN_27, COLOR_ORDER>(m_spData->pLeds, m_spData->iNumLEDs).setCorrection( TypicalLEDStrip );
 	}
 	FastLED.setBrightness( m_spData->iBrightness );
@@ -280,7 +280,7 @@ void LEDController::registerLEDs(void)
 
 void LEDController::Setup(const String& rURL, uint8_t iLEDPin, int iNumLEDs, uint8_t iBrightness, int iUpdateRate)
 {
-	LED_LOG("LEDController::Setup");
+	LED_LOG("* LEDController::Setup");
 
 	m_spData = make_unique<SData>();
 	
@@ -293,7 +293,7 @@ void LEDController::Setup(const String& rURL, uint8_t iLEDPin, int iNumLEDs, uin
 	
 	SetNumLEDs(m_spData->iNumLEDs);
 	
-	LED_LOG("LEDController::registerLEDFunctions");
+	LED_LOG("* LEDController::registerLEDFunctions");
 	m_spData->availableLEDFunctions.push_back(make_unique<LEDRGB>());
 	m_spData->availableLEDFunctions.push_back(make_unique<LEDFire>());
 	m_spData->availableLEDFunctions.push_back(make_unique<LEDSineWave>());
@@ -312,12 +312,35 @@ void LEDController::Setup(const String& rURL, uint8_t iLEDPin, int iNumLEDs, uin
 	LEDBase::SetBlack(m_spData->pLeds, m_spData->iNumLEDs);
 }
 
-void LEDController::ShowErrorLED(void)
+void LEDController::ShowLEDStatus(uint32_t uiMilliseconds, const CRGB& rColor)
 {
-	// set first led red.
-	m_spData->pLeds[0] = CRGB::Red;
-	FastLED.show(); // display this frame
-	FastLED.delay(5000);	
+	LEDBase::SetAll(m_spData->pLeds, m_spData->iNumLEDs, rColor);
+	FastLED.show();
+	FastLED.delay(uiMilliseconds/2);
+	
+	LEDBase::SetBlack(m_spData->pLeds, m_spData->iNumLEDs);
+	FastLED.show();
+	FastLED.delay(uiMilliseconds/2);
+}
+
+void LEDController::ShowErrorLED(uint32_t uiMilliseconds)
+{
+	ShowLEDStatus(uiMilliseconds, CRGB(70, 0, 0));
+}
+
+void LEDController::ShowStartupLED(uint32_t uiMilliseconds)
+{
+	ShowLEDStatus(uiMilliseconds, CRGB::Yellow);
+}
+
+void LEDController::ShowInitLED(uint32_t uiMilliseconds)
+{
+	ShowLEDStatus(uiMilliseconds, CRGB::White);
+}
+
+void LEDController::ShowNoLED(void)
+{
+	LEDBase::SetBlack(m_spData->pLeds, m_spData->iNumLEDs);
 }
 
 void LEDController::Loop()
@@ -502,6 +525,7 @@ void LEDController::SaveConfigs(void) const
 		LED_LOG("Writing to EEPROM (size: " + String(stream.GetSize()) + ")");
 		if (stream.GetSize() > 255)
 		{
+			m_spData->strLogMessage = "SaveConfigs failed! (too many configs)";
 			throw 0;
 		}
 		stream.WriteEEPROM(0); // write all from EEPROM.
@@ -548,7 +572,7 @@ void LEDController::LoadConfigs(void)
 	}
 	catch(...)
 	{
-		
+		m_spData->strLogMessage = "LoadConfigs failed!";
 	}
 	LED_LOG("LEDController::LoadConfigs DONE.");
 }
@@ -572,12 +596,13 @@ void LEDController::SaveConfigs(void) const
 		LED_LOG("Number of LED functions to serialize: " + String(m_spData->availableLEDFunctions.size()));
 		data.Serialize(stream);
 		
-		LED_LOG("Writing to EEPROM (size: " + String(stream.GetSize()) + ")");
+		LED_LOG("Size to write: " + String(stream.GetSize()) + ")");
 		if (stream.GetSize() > 255)
 		{
 			m_spData->strLogMessage = "SaveConfigs failed! (too many configs)";
 			throw 0;
 		}
+		LED_LOG("Writing to EEPROM...");
 		stream.WriteEEPROM(0); // write all from EEPROM.
 	}
 	catch(...)
